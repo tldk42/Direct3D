@@ -2,11 +2,26 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <WinSock2.h>
 #include <iostream>
-
+#include <vector>
 
 #pragma comment(lib, "ws2_32.lib");
 
-constexpr int32_t MAX_QUEUE = 256;
+struct FSession
+{
+	SOCKET      Socket = 0;
+	SOCKADDR_IN SockAddr;
+	std::string Buffer;
+	UINT        ReceivedByte = 0;
+
+	FSession(SOCKET InSocket, SOCKADDR_IN InSockAddr)
+		: Socket(InSocket), SockAddr(InSockAddr), ReceivedByte(0)
+	{
+		Buffer.resize(256);
+	}
+};
+
+constexpr int32_t     MAX_QUEUE = 256;
+std::vector<FSession> g_SocketList{};
 
 bool InitWinSoc();
 void DelWinSock();
@@ -30,11 +45,11 @@ int main(int argc, char* argv[])
 	 *   		- Foreign Port Num							 
 	 *   		- Foreign IP Addr							 
 	 */
-	SOCKET sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	SOCKET listeningSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	try
 	{
-		if (sock == INVALID_SOCKET)
+		if (listeningSocket == INVALID_SOCKET)
 			throw "Socket(listen) Creation Failed";
 
 		/** bind
@@ -47,7 +62,7 @@ int main(int argc, char* argv[])
 		sockAddr.sin_port        = htons(10000);
 		sockAddr.sin_family      = AF_INET;
 
-		if (bind(sock, reinterpret_cast<sockaddr*>(&sockAddr), sizeof(sockAddr)) == SOCKET_ERROR)
+		if (bind(listeningSocket, reinterpret_cast<sockaddr*>(&sockAddr), sizeof(sockAddr)) == SOCKET_ERROR)
 		{
 			// TODO: Handle Error
 			std::cout << "Socket Binding Error" << '\n';
@@ -60,10 +75,16 @@ int main(int argc, char* argv[])
 		 *	listen이 호출 된 이후부터 해당 소켓 개체로의 접속 요청이 있으면 백그라운드로의 접속을 받아들일 수 있게 된다.
 		 *	접속을 받아들일 때에는 최대 대기 큐(backlog)가 존재하는데 이 대기 큐의 최댓값은 listen의 두번째 인자로 들어간다.
 		 */
-		if (listen(sock, MAX_QUEUE) == SOCKET_ERROR)
+		if (listen(listeningSocket, MAX_QUEUE) == SOCKET_ERROR)
 		{
 			throw "Socket listen Error";
 		}
+
+		/**
+		 * 소켓을 non blocking 소켓으로 변환
+		 */
+		u_long iNonSocket = TRUE;
+		int    socketMode = ioctlsocket(listeningSocket, FIONBIO, &iNonSocket);
 
 		/** accept
 		 * 접속 대기 큐로부터 접속된 소켓 개체를 가져오기 위해 호출
@@ -84,24 +105,97 @@ int main(int argc, char* argv[])
 		 *   - 이 클라이언트를 거부할 수 있다.
 		 *   - 클라이언트 접속을 기록할 수 있다.
 		 */
+
+		SOCKADDR_IN clientAddr;
+		SOCKET      clientSocket;
+		int32_t     clientAddrLen = sizeof(clientAddr);
+
 		while (true)
 		{
-			SOCKADDR_IN clientAddr;
-			int32_t     clientAddrLen = sizeof(clientAddr);
-			SOCKET      commSock      = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr), &clientAddrLen);
+			clientSocket = accept(listeningSocket, reinterpret_cast<sockaddr*>(&clientAddr), &clientAddrLen);
+			if (clientSocket == INVALID_SOCKET)
+			{
+				throw "client socket invalid";
+			}
 
-			std::cout << "connected from[" << inet_ntoa(clientAddr.sin_addr) << "]" << '\n';
+			// New Client Coming in...
+			// 이 IP의 시간 보내기
+			{
+				std::cout << "connected from[" << inet_ntoa(clientAddr.sin_addr) << "]" << '\n';
+				g_SocketList.emplace_back(clientSocket, clientAddr);
 
-			time_t longTime;
-			tm*    newTime;
-			char   timeSize[100];
+				time_t longTime;
+				char   timeSize[100];
 
-			time(&longTime);
-			newTime = localtime(&longTime);
+				time(&longTime);
+				const tm* newTime = localtime(&longTime);
 
-			sprintf_s(timeSize, "%.19s, zzz\n", asctime(newTime));
-			send(commSock, timeSize, static_cast<int>(strlen(timeSize)), 0);
-			closesocket(commSock);
+				sprintf_s(timeSize, "%.19s, zzz\n", asctime(newTime));
+				send(clientSocket, timeSize, static_cast<int>(strlen(timeSize)), 0);
+			}
+
+			auto it = std::begin(g_SocketList);
+			while (it != std::end(g_SocketList))
+			{
+				FSession& session    = (*it);
+				session.ReceivedByte = 0;
+
+				SOCKET currClientSock = session.Socket;
+
+				const int received = recv(currClientSock, &session.Buffer[0], session.Buffer.size(), 0);
+				if (received == 0)
+				{
+					closesocket(currClientSock);
+					std::cout << inet_ntoa(clientAddr.sin_addr) << ' ' << "Closing Session..." << '\n';
+					it = g_SocketList.erase(it);
+					continue;
+				}
+				if (received < 0)
+				{
+					int iError = WSAGetLastError();
+					if (iError != WSAEWOULDBLOCK)
+					{
+						closesocket(currClientSock);
+						it = g_SocketList.erase(it);
+						std::cout << "비정상 서버 종료!" << std::endl;
+						continue;
+					}
+
+					++it;
+					continue;
+				}
+
+				session.ReceivedByte = received;
+				if (session.ReceivedByte > 0)
+				{
+					std::cout << session.Buffer.c_str() << '\n';
+				}
+
+				for (auto iterSend = g_SocketList.begin(); iterSend != g_SocketList.end();)
+				{
+					FSession& user = (*iterSend);
+					if (session.ReceivedByte > 0)
+					{
+						int SendByte = send(user.Socket, session.Buffer.c_str(), session.ReceivedByte, 0);
+						if (SendByte < 0)
+						{
+							int iError = WSAGetLastError();
+							if (iError != WSAEWOULDBLOCK)
+							{
+								closesocket(user.Socket);
+								std::cout << "비정상 서버 종료!" << std::endl;
+								iterSend = g_SocketList.erase(iterSend);
+								continue;
+							}
+						}
+					}
+
+					++it;
+				}
+			}
+			closesocket(clientSocket);
+			closesocket(listeningSocket);
+
 		}
 	}
 	catch (char* ErrorMSG)
@@ -122,9 +216,9 @@ int main(int argc, char* argv[])
 		LocalFree(OSMessage);
 	}
 
-	if (sock != INVALID_SOCKET)
+	if (listeningSocket != INVALID_SOCKET)
 	{
-		closesocket(sock);
+		closesocket(listeningSocket);
 	}
 
 	DelWinSock();
