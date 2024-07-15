@@ -1,0 +1,6 @@
+/Engine/vcpkg_installed/*
+
+/.idea
+/.vs
+
+vcpkg-configuration.json
