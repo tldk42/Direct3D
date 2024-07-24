@@ -24,3 +24,16 @@ public:
 	virtual void Release() = 0;
 #pragma endregion
 };
+
+
+inline WText String2WString(const Text& InString)
+{
+	USES_CONVERSION;
+	return WText(A2W(InString.c_str()));
+}
+
+inline Text WString2String(const WText& InWString)
+{
+	USES_CONVERSION;
+	return Text(W2A(InWString.c_str()));
+}

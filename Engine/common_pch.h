@@ -7,8 +7,9 @@
 #include <functional>
 #include <format>
 #include <fstream>
+#include <filesystem>
 #include <atlconv.h>
-
+#include <assert.h>
 
 #include <string>
 #include <sstream>
@@ -19,3 +20,5 @@
 
 #include <Windows.h>
 #include <wrl.h>
+
+#include "Utils/Math/MathFwd.h"

@@ -36,8 +36,13 @@ public:
 	[[nodiscard]] FORCEINLINE bool                   IsFullScreen() const { return mWindowData.bFullScreen; }
 	[[nodiscard]] FORCEINLINE bool                   IsVsyncEnabled() const { return mWindowData.bVsync; }
 
+public:
+	void OnResize(UINT InWidth, UINT InHeight) const;
+
 private:
-	void OnResize(UINT InWidth, UINT InHeight);
+	void Resize(UINT InWidth, UINT InHeight);
+public:
+	std::vector<std::function<void(UINT Width, UINT Height)>> ResizeCallbacks;
 
 private:
 	HINSTANCE        mInstanceHandle;

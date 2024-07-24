@@ -23,6 +23,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -30,6 +31,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -38,15 +40,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>../../$(Configuration)\$(ProjectName)\Output/</OutDir>
-    <IntDir>../../$(Configuration)\$(ProjectName)\Intermediate/</IntDir>
+    <OutDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Output/</OutDir>
+    <IntDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Intermediate/</IntDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions); </PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -56,6 +58,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies);$(_ZVcpkgCurrentInstalledDir)$(_ZVcpkgConfigSubdir)lib\*.lib;d3d11.lib;dxgi.lib;d2d1.lib;dwrite.lib;d3dcompiler.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -66,114 +69,79 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies);$(_ZVcpkgCurrentInstalledDir)$(_ZVcpkgConfigSubdir)lib\*.lib;d3d11.lib;dxgi.lib;d2d1.lib;dwrite.lib;d3dcompiler.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="common_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Core\JObject.cpp" />
     <ClCompile Include="EntryPoint.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">common_pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Graphics\ConstantBuffer\CConstantBuffer.cpp" />
+    <ClCompile Include="Graphics\ConstantBuffer\CProjectionBuffer.cpp" />
+    <ClCompile Include="Graphics\ConstantBuffer\CViewBuffer.cpp" />
+    <ClCompile Include="Graphics\ConstantBuffer\CWorldBuffer.cpp" />
+    <ClCompile Include="Graphics\Font\XDWrite.cpp" />
     <ClCompile Include="Graphics\GraphicDevice.cpp" />
-    <ClCompile Include="Graphics\XShader.cpp" />
-    <ClCompile Include="Manager\Manager_Base.cpp" />
-    <ClCompile Include="Utils\Logger.cpp">
-      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <Optimization>Disabled</Optimization>
-      <SupportJustMyCode>true</SupportJustMyCode>
-      <AssemblerOutput>NoListing</AssemblerOutput>
-      <AssemblerListingLocation>../../Debug\Core\Intermediate/</AssemblerListingLocation>
-      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>../../Debug\Core\Intermediate/</BrowseInformationFile>
-      <CompileAs>Default</CompileAs>
-      <ConformanceMode>true</ConformanceMode>
-      <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <ExpandAttributedSource>false</ExpandAttributedSource>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <EnableASAN>false</EnableASAN>
-      <EnableFuzzer>false</EnableFuzzer>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <FloatingPointModel>Precise</FloatingPointModel>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <GenerateModuleDependencies>false</GenerateModuleDependencies>
-      <GenerateSourceDependencies>false</GenerateSourceDependencies>
-      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>Default</LanguageStandard_C>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ModuleDependenciesFile>../../Debug\Core\Intermediate/</ModuleDependenciesFile>
-      <ModuleOutputFile>../../Debug\Core\Intermediate/</ModuleOutputFile>
-      <OmitDefaultLibName>false</OmitDefaultLibName>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <ObjectFileName>../../Debug\Core\Intermediate/</ObjectFileName>
-      <CallingConvention>Cdecl</CallingConvention>
-      <ProgramDataBaseFileName>../../Debug\Core\Intermediate/vc143.pdb</ProgramDataBaseFileName>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>common_pch.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>../../Debug\Core\Intermediate/Core.pch</PrecompiledHeaderOutputFile>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessKeepComments>false</PreprocessKeepComments>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
-      <ShowIncludes>false</ShowIncludes>
-      <SourceDependenciesFile>../../Debug\Core\Intermediate/</SourceDependenciesFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <SmallerTypeCheck>false</SmallerTypeCheck>
-      <SpectreMitigation>false</SpectreMitigation>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <TrackerLogDirectory>../../Debug\Core\Intermediate/Core.tlog\</TrackerLogDirectory>
-      <TranslateIncludes>false</TranslateIncludes>
-      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <UseFullPaths>true</UseFullPaths>
-      <WarningLevel>Level3</WarningLevel>
-      <XMLDocumentationFileName>../../Debug\Core\Intermediate/</XMLDocumentationFileName>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <IntelJCCErratum>false</IntelJCCErratum>
-      <BuildStlModules>false</BuildStlModules>
-      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
-      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
-      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
-      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4838</DisableSpecificWarnings>
-      <LinkCompiled>true</LinkCompiled>
-      <AdditionalIncludeDirectories>;D:\source\vcpkg\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
-    </ClCompile>
+    <ClCompile Include="Graphics\Shader\ShaderManager.cpp" />
+    <ClCompile Include="Graphics\Shader\XShader.cpp" />
+    <ClCompile Include="Graphics\State\SamplerState.cpp" />
+    <ClCompile Include="Graphics\Texture\XTexture2D.cpp" />
+    <ClCompile Include="Graphics\Vertex\XVertexBuffer.cpp" />
+    <ClCompile Include="GUI\Chatting\GUI_Chat.cpp" />
+    <ClCompile Include="Manager\BaseManager.cpp" />
+    <ClCompile Include="Utils\Logger.cpp" />
+    <ClCompile Include="Utils\Math\Color.cpp" />
+    <ClCompile Include="Utils\Math\Math.cpp" />
+    <ClCompile Include="Window\Application.cpp" />
     <ClCompile Include="Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common_include.h" />
     <ClInclude Include="common_pch.h" />
+    <ClInclude Include="Core\JObject.h" />
     <ClInclude Include="Debug\Assert.h" />
+    <ClInclude Include="Graphics\ConstantBuffer\CConstantBuffer.h" />
+    <ClInclude Include="Graphics\ConstantBuffer\CProjectionBuffer.h" />
+    <ClInclude Include="Graphics\ConstantBuffer\CViewBuffer.h" />
+    <ClInclude Include="Graphics\ConstantBuffer\CWorldBuffer.h" />
+    <ClInclude Include="Graphics\DirectMathHelper.h" />
+    <ClInclude Include="Graphics\Font\XDWrite.h" />
     <ClInclude Include="Graphics\GraphicDevice.h" />
-    <ClInclude Include="Graphics\XShader.h" />
+    <ClInclude Include="Graphics\graphics_common_include.h" />
+    <ClInclude Include="Graphics\Shader\InputLayouts.h" />
+    <ClInclude Include="Graphics\Shader\ShaderManager.h" />
+    <ClInclude Include="Graphics\Shader\XShader.h" />
+    <ClInclude Include="Graphics\State\SamplerState.h" />
+    <ClInclude Include="Graphics\Texture\XTexture2D.h" />
+    <ClInclude Include="Graphics\Vertex\XVertexBuffer.h" />
+    <ClInclude Include="GUI\Chatting\GUI_Chat.h" />
     <ClInclude Include="Manager\Manager_Base.h" />
+    <ClInclude Include="Utils\HelperFunction.h" />
     <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\Math\Color.h" />
+    <ClInclude Include="Utils\Math\MathFwd.h" />
+    <ClInclude Include="Utils\Math\MathUtility.h" />
+    <ClInclude Include="Utils\Math\FTransform.h" />
+    <ClInclude Include="Utils\Math\Vector.h" />
+    <ClInclude Include="Utils\Math\Vector2D.h" />
     <ClInclude Include="Utils\Timer.h" />
+    <ClInclude Include="Window\Application.h" />
     <ClInclude Include="Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Shader\alphablend.hlsl" />
+    <Content Include="Utils\Math\Quaternion.h" />
     <Content Include="vcpkg.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -184,5 +152,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
+    <OutDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Output/</OutDir>
+    <IntDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Intermediate/</IntDir>
   </PropertyGroup>
 </Project>

@@ -1,19 +1,24 @@
 ﻿#include "common_pch.h"
 #include "Window.h"
+#include <imgui.h>
 
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase; // 모듈(실행 파일) 베이스 주소
 
-int32_t                                 Window::s_windowNum = 0;
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+int32_t                            Window::s_windowNum = 0;
 std::unordered_map<void*, Window*> Window::s_WindowHandles{};
 
 LRESULT WndProc(HWND HWnd, UINT Message, WPARAM WParam, LPARAM LParam)
 {
-
+	if (ImGui_ImplWin32_WndProcHandler(HWnd, Message, WParam, LParam))
+		return true;
 	switch (Message)
 	{
 	case WM_SIZE:
 		// TODO: Resize Callback
+		Window::GetWindow()->OnResize(LOWORD(LParam), HIWORD(LParam));
 		break;
 	case WM_CLOSE:
 		DestroyWindow(HWnd);
@@ -51,8 +56,6 @@ Window::Window(LPCWSTR InWindowTitle, const FBasicWindowData& InWindowData)
 	  bClosed(false)
 {
 	mInstanceHandle = reinterpret_cast<HINSTANCE>(&__ImageBase);
-
-	Initialize();
 }
 
 Window::~Window() {}
@@ -112,6 +115,10 @@ void Window::Initialize()
 
 	ShowWindow(mWindowHandle, SW_SHOW);
 	SetFocus(mWindowHandle);
+
+	ResizeCallbacks.emplace_back([this](UINT InWidth, UINT InHeight){
+		Resize(InWidth, InHeight);
+	});
 }
 
 void Window::Update()
@@ -136,7 +143,15 @@ void Window::RegisterWindow(void* InHandle, Window* InWindowClass)
 	s_WindowHandles[InHandle] = InWindowClass;
 }
 
-void Window::OnResize(UINT InWidth, UINT InHeight)
+void Window::OnResize(UINT InWidth, UINT InHeight) const
+{
+	for (auto& resizeFunc : ResizeCallbacks)
+	{
+		resizeFunc(InWidth, InHeight);
+	}
+}
+
+void Window::Resize(UINT InWidth, UINT InHeight)
 {
 	mWindowData.Width  = InWidth;
 	mWindowData.Height = InHeight;
