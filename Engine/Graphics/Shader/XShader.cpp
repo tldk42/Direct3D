@@ -58,11 +58,11 @@ void XShader::Update(float_t DeltaTime) {}
 
 void XShader::Render()
 {
-	G_Context.GetDeviceContext()->IASetInputLayout(mVertexLayout.Get());
+	G_Context.GetImmediateDeviceContext()->IASetInputLayout(mVertexLayout.Get());
 
 
-	G_Context.GetDeviceContext()->VSSetShader(mVertexShader.Get(), nullptr, 0);
-	G_Context.GetDeviceContext()->PSSetShader(mPixelShader.Get(), nullptr, 0);
+	G_Context.GetImmediateDeviceContext()->VSSetShader(mVertexShader.Get(), nullptr, 0);
+	G_Context.GetImmediateDeviceContext()->PSSetShader(mPixelShader.Get(), nullptr, 0);
 }
 
 void XShader::Release()

@@ -10,12 +10,12 @@ void CWorldBuffer::Initialize()
 
 void CWorldBuffer::Update(float DeltaTime)
 {
-	G_Context.GetDeviceContext()->UpdateSubresource(mConstantBuffer.Get(), 0, nullptr, &mWorldMatrix, 0, 0);
+	G_Context.GetImmediateDeviceContext()->UpdateSubresource(mConstantBuffer.Get(), 0, nullptr, &mWorldMatrix, 0, 0);
 }
 
 void CWorldBuffer::Render()
 {
-	G_Context.GetDeviceContext()->VSSetConstantBuffers(0, 1, mConstantBuffer.GetAddressOf());
+	G_Context.GetImmediateDeviceContext()->VSSetConstantBuffers(0, 1, mConstantBuffer.GetAddressOf());
 }
 
 void CWorldBuffer::Release()

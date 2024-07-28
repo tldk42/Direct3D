@@ -8,12 +8,12 @@ void CViewBuffer::Initialize() {}
 
 void CViewBuffer::Update(float DeltaTime)
 {
-	G_Context.GetDeviceContext()->UpdateSubresource(mConstantBuffer.Get(), 0, nullptr, &mViewMatrix, 0, 0);
+	G_Context.GetImmediateDeviceContext()->UpdateSubresource(mConstantBuffer.Get(), 0, nullptr, &mViewMatrix, 0, 0);
 }
 
 void CViewBuffer::Render()
 {
-	G_Context.GetDeviceContext()->VSSetConstantBuffers(1, 1, mConstantBuffer.GetAddressOf());
+	G_Context.GetImmediateDeviceContext()->VSSetConstantBuffers(1, 1, mConstantBuffer.GetAddressOf());
 }
 
 void CViewBuffer::Release()

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Graphics/graphics_common_include.h"
 #include "Manager/Manager_Base.h"
-#include "Utils/Math/Vector2D.h"
+#include <directxtk/CommonStates.h>
 
 using namespace Microsoft::WRL;
 
@@ -25,7 +25,7 @@ public:
 public:
 #pragma region Get
 	FORCEINLINE static ID3D11Device*           GetDevice() { return Get().mDevice.Get(); }
-	FORCEINLINE static ID3D11DeviceContext*    GetDeviceContext() { return Get().mDeviceContext.Get(); }
+	FORCEINLINE static ID3D11DeviceContext*    GetImmediateDeviceContext() { return Get().mImmediateContext.Get(); }
 	FORCEINLINE static IDXGISwapChain*         GetSwapChain() { return Get().mSwapChain.Get(); }
 	FORCEINLINE static ID2D1Factory*           Get2DFactory() { return Get().mD2DFactory.Get(); }
 	FORCEINLINE static IDWriteFactory*         GetWriteFactory() { return Get().mDWriteFactory.Get(); }
@@ -33,6 +33,7 @@ public:
 	FORCEINLINE static ID3D11RenderTargetView* GetRTV() { return Get().mRenderTargetView.Get(); }
 	FORCEINLINE static ID2D1RenderTarget*      GetSurface1() { return Get().mRenderTarget_2D.Get(); }
 	FORCEINLINE static ID3D11DepthStencilView* GetDepthStencilView() { return Get().mDepthStencilView.Get(); }
+	FORCEINLINE static DX11::CommonStates*     GetDXTKCommonStates() { return Get().mCommonStates.get(); }
 
 	FORCEINLINE static CHAR* GetVideoCardDesc() { return Get().mVideoCardDescription; }
 #pragma endregion
@@ -52,7 +53,8 @@ private:
 
 private:
 	ComPtr<ID3D11Device>            mDevice;					/** 디바이스 포인터 (리소스 생성) */
-	ComPtr<ID3D11DeviceContext>     mDeviceContext;             /** 디바이스 컨텍스트 포인터 (파이프라인 설정) */
+	ComPtr<ID3D11DeviceContext>     mImmediateContext;          /** 디바이스 컨텍스트 포인터 (파이프라인 설정) */
+	ComPtr<ID3D11DeviceContext>     mDeferredContext_1;          /** 지연 컨텍스트 포인터 (멀티 스레드 렌더링) */
 	ComPtr<IDXGIFactory>            mGIFactory;					/** Graphic Infrastructure*/
 	ComPtr<ID2D1Factory>            mD2DFactory;				/** D2D Factory*/
 	ComPtr<IDWriteFactory>          mDWriteFactory;				/** DWrite Factory*/
@@ -64,9 +66,10 @@ private:
 	ComPtr<ID3D11DepthStencilState> mDepthStencilState;			/**	 */
 	ComPtr<ID3D11Texture2D>         mDepthStencilBuffer;        /** 2D 이미지 관리 개체 인터페이스 */
 
+	std::unique_ptr<CommonStates> mCommonStates;
+
 	DXGI_SWAP_CHAIN_DESC mSwapChainDesc;             /** 스왑체인 구조체 */
 	D3D11_VIEWPORT       mViewport;                  /** 렌더링 뷰포트 */
-	D3D_FEATURE_LEVEL    mFeatureLevel;              /** DX기능 수준 레벨 */
 	CHAR                 mVideoCardDescription[128]; /** 비디오카드 상세 정보 */
 
 #pragma region Singleton Boilerplate

@@ -55,7 +55,7 @@ void SamplerState::Update(float DeltaTime) {}
 
 void SamplerState::Render()
 {
-	G_Context.GetDeviceContext()->PSSetSamplers(mSlot, 1, mSampler.GetAddressOf());
+	G_Context.GetImmediateDeviceContext()->PSSetSamplers(mSlot, 1, mSampler.GetAddressOf());
 }
 
 void SamplerState::Release()

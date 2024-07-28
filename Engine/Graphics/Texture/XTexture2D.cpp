@@ -26,7 +26,7 @@ void XTexture2D::Update(float DeltaTime) {}
 
 void XTexture2D::Render()
 {
-	// G_Context.GetDeviceContext()->PSSetShaderResources(mSlot, 1, mSRV.GetAddressOf());
+	// G_Context.GetImmediateDeviceContext()->PSSetShaderResources(mSlot, 1, mSRV.GetAddressOf());
 
 }
 

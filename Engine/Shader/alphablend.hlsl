@@ -32,10 +32,10 @@ VS_OUTPUT vs(VS_INPUT input)
 VS_OUTPUT output;
 
 output.Pos = float4(input.Pos,  1.f);
-//
-// output.Pos = mul(output.Pos, world);
-// output.Pos = mul(output.Pos, view);
-// output.Pos = mul(output.Pos, projection);
+
+output.Pos = mul(output.Pos, world);
+output.Pos = mul(output.Pos, view);
+output.Pos = mul(output.Pos, projection);
 
 output.Tex = input.Tex;
 output.Col = input.Col;

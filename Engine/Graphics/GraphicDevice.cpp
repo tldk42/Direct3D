@@ -5,7 +5,9 @@
 #include "Window/Window.h"
 
 GraphicDevice::GraphicDevice()
-	: mFeatureLevel(D3D_FEATURE_LEVEL_11_0) {}
+	: mSwapChainDesc(),
+	  mViewport(),
+	  mVideoCardDescription{} {}
 
 GraphicDevice::~GraphicDevice()
 {
@@ -14,6 +16,13 @@ GraphicDevice::~GraphicDevice()
 
 void GraphicDevice::Initialize()
 {
+	if (!XMVerifyCPUSupport())
+	{
+		MessageBox(nullptr, TEXT("This application requires the processor support SSE2 instructions."),
+				   TEXT("CPU not Support"), MB_OK | MB_ICONEXCLAMATION);
+		assert(-1);
+	}
+
 	CreateGIFactory();
 	CreateDevice();
 	CreateSwapChain();
@@ -25,12 +34,14 @@ void GraphicDevice::Initialize()
 	Window::GetWindow()->ResizeCallbacks.emplace_back([this](UINT InWidth, UINT InHeight){
 		OnResize(InWidth, InHeight);
 	});
+
 }
 
 void GraphicDevice::Update(float_t DeltaTime)
 {
-	mDeviceContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	mDeviceContext->OMSetRenderTargets(1, mRenderTargetView.GetAddressOf(), mDepthStencilView.Get());
+
+	mImmediateContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	mImmediateContext->OMSetRenderTargets(1, mRenderTargetView.GetAddressOf(), mDepthStencilView.Get());
 	SetDepthEnable(true);
 }
 
@@ -38,15 +49,16 @@ void GraphicDevice::Render()
 {
 	// 후면 버퍼 렌더
 	CheckResult(
-		mSwapChain->Present(
-			Window::GetWindow()->IsVsyncEnabled(), 0
-		));
+				mSwapChain->Present(
+									Window::GetWindow()->IsVsyncEnabled(), 0
+								   ));
 }
 
 void GraphicDevice::Release()
 {
+	mCommonStates       = nullptr;
 	mDevice             = nullptr;
-	mDeviceContext      = nullptr;
+	mImmediateContext   = nullptr;
 	mGIFactory          = nullptr;
 	mD2DFactory         = nullptr;
 	mDWriteFactory      = nullptr;
@@ -59,12 +71,13 @@ void GraphicDevice::Release()
 
 void GraphicDevice::ClearColor(const FLinearColor& InColor) const
 {
-	mDeviceContext->ClearRenderTargetView(mRenderTargetView.Get(), InColor.RGBA);
+	mImmediateContext->ClearRenderTargetView(mRenderTargetView.Get(), InColor.RGBA);
 }
+
 
 void GraphicDevice::SetDepthEnable(bool bEnable) const
 {
-	mDeviceContext->OMSetDepthStencilState(bEnable ? mDepthStencilState.Get() : nullptr, 1);
+	mImmediateContext->OMSetDepthStencilState(bEnable ? mDepthStencilState.Get() : nullptr, 1);
 }
 
 void GraphicDevice::CreateDevice()
@@ -75,28 +88,32 @@ void GraphicDevice::CreateDevice()
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0,
 	};
+	D3D_FEATURE_LEVEL outFeatureLevel;
 
 	CheckResult(
-		D3D11CreateDevice(
-			nullptr,                  // 주 모니터 사용
-			D3D_DRIVER_TYPE_HARDWARE, // 하드웨어 가속 사용
-			nullptr,                  // 하드웨어 사용
+				D3D11CreateDevice(
+								  nullptr,                  // 주 모니터 사용
+								  D3D_DRIVER_TYPE_HARDWARE, // 하드웨어 가속 사용
+								  nullptr,                  // 하드웨어 사용
 #ifdef _DEBUG
-			D3D11_CREATE_DEVICE_DEBUG | // 디버그 활성화
+								  D3D11_CREATE_DEVICE_DEBUG | // 디버그 활성화
 #endif
-			D3D11_CREATE_DEVICE_BGRA_SUPPORT, // flags
-			featureLevels,                    // 기능 수준
-			ARRAYSIZE(featureLevels),         // 기능 배열 개수
-			D3D11_SDK_VERSION,                // DX Version
-			mDevice.GetAddressOf(),           // (Out) Device
-			&mFeatureLevel,                   // (Out) Features
-			mDeviceContext.GetAddressOf()
-		));  // (Out) DeviceContext
+								  D3D11_CREATE_DEVICE_BGRA_SUPPORT, // flags
+								  featureLevels,                    // 기능 수준
+								  ARRAYSIZE(featureLevels),         // 기능 배열 개수
+								  D3D11_SDK_VERSION,                // DX Version
+								  mDevice.GetAddressOf(),           // (Out) Device
+								  &outFeatureLevel,                 // (Out) Features
+								  mImmediateContext.GetAddressOf() // (Out) DeviceContext
+								 ));
+	mCommonStates = std::make_unique<CommonStates>(G_Context.GetDevice());
 
-	if (mFeatureLevel < D3D_FEATURE_LEVEL_11_0)
+	CheckResult(mDevice->CreateDeferredContext(FALSE, mDeferredContext_1.GetAddressOf()));
+
+	if (outFeatureLevel < D3D_FEATURE_LEVEL_11_0)
 	{
-		mDeviceContext = nullptr;
-		mDevice        = nullptr;
+		mImmediateContext = nullptr;
+		mDevice           = nullptr;
 	}
 }
 
@@ -105,10 +122,10 @@ void GraphicDevice::CreateGIFactory()
 	ComPtr<IDXGIAdapter> DXGIAdapter;
 
 	CheckResult(
-		CreateDXGIFactory(
-			__uuidof(IDXGIFactory),
-			reinterpret_cast<void**>(mGIFactory.GetAddressOf()
-			)));
+				CreateDXGIFactory(
+								  __uuidof(IDXGIFactory),
+								  reinterpret_cast<void**>(mGIFactory.GetAddressOf()
+								  )));
 
 	CheckResult(mGIFactory->EnumAdapters(0, DXGIAdapter.GetAddressOf()));
 
@@ -124,10 +141,10 @@ void GraphicDevice::CreateGIFactory()
 
 	// Direct2D Creation
 	CheckResult(
-		D2D1CreateFactory(
-			D2D1_FACTORY_TYPE_SINGLE_THREADED, // 멀티 스레드 지원 가능
-			mD2DFactory.GetAddressOf()
-		));
+				D2D1CreateFactory(
+								  D2D1_FACTORY_TYPE_SINGLE_THREADED, // 멀티 스레드 지원 가능
+								  mD2DFactory.GetAddressOf()
+								 ));
 }
 
 void GraphicDevice::CreateSwapChain()
@@ -150,11 +167,11 @@ void GraphicDevice::CreateSwapChain()
 	}
 
 	CheckResult(
-		mGIFactory->CreateSwapChain(
-			mDevice.Get(),
-			&mSwapChainDesc,
-			mSwapChain.GetAddressOf()
-		));
+				mGIFactory->CreateSwapChain(
+											mDevice.Get(),
+											&mSwapChainDesc,
+											mSwapChain.GetAddressOf()
+										   ));
 }
 
 
@@ -162,17 +179,17 @@ void GraphicDevice::Create2DResources()
 {
 	// DirectWrite Creation
 	CheckResult(
-		DWriteCreateFactory(
-			DWRITE_FACTORY_TYPE_SHARED, // SHARED | ISOLATED타입 (메모리)
-			__uuidof(IDWriteFactory),
-			reinterpret_cast<IUnknown**>(mDWriteFactory.GetAddressOf())
-		));
+				DWriteCreateFactory(
+									DWRITE_FACTORY_TYPE_SHARED, // SHARED | ISOLATED타입 (메모리)
+									__uuidof(IDWriteFactory),
+									reinterpret_cast<IUnknown**>(mDWriteFactory.GetAddressOf())
+								   ));
 
 	CheckResult(
-		mRenderTarget_2D->CreateSolidColorBrush(
-			D2D1::ColorF(D2D1::ColorF::White),
-			mColorBrush.GetAddressOf()
-		));
+				mRenderTarget_2D->CreateSolidColorBrush(
+														D2D1::ColorF(D2D1::ColorF::White),
+														mColorBrush.GetAddressOf()
+													   ));
 }
 
 void GraphicDevice::SetDepthStencil()
@@ -191,11 +208,11 @@ void GraphicDevice::SetDepthStencil()
 	depthStencilDesc.CPUAccessFlags     = 0;
 	depthStencilDesc.MiscFlags          = 0;
 	CheckResult(
-		mDevice->CreateTexture2D(
-			&depthStencilDesc,
-			nullptr,
-			mDepthStencilBuffer.GetAddressOf()
-		));
+				mDevice->CreateTexture2D(
+										 &depthStencilDesc,
+										 nullptr,
+										 mDepthStencilBuffer.GetAddressOf()
+										));
 
 	// Depth Stencil View
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{};
@@ -203,11 +220,11 @@ void GraphicDevice::SetDepthStencil()
 	depthStencilViewDesc.ViewDimension      = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 	CheckResult(
-		mDevice->CreateDepthStencilView(
-			mDepthStencilBuffer.Get(),
-			&depthStencilViewDesc,
-			mDepthStencilView.GetAddressOf()
-		));
+				mDevice->CreateDepthStencilView(
+												mDepthStencilBuffer.Get(),
+												&depthStencilViewDesc,
+												mDepthStencilView.GetAddressOf()
+											   ));
 
 	// Depth Stencil State
 	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc{};
@@ -215,10 +232,10 @@ void GraphicDevice::SetDepthStencil()
 	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	depthStencilStateDesc.DepthFunc      = D3D11_COMPARISON_LESS_EQUAL;
 	CheckResult(
-		mDevice->CreateDepthStencilState(
-			&depthStencilStateDesc,
-			mDepthStencilState.GetAddressOf()
-		));
+				mDevice->CreateDepthStencilState(
+												 &depthStencilStateDesc,
+												 mDepthStencilState.GetAddressOf()
+												));
 }
 
 void GraphicDevice::SetRenderTarget()
@@ -228,11 +245,11 @@ void GraphicDevice::SetRenderTarget()
 	ComPtr<IDXGISurface>    dxgiBackBuffer;
 
 	CheckResult(
-		mSwapChain->GetBuffer(
-			0,
-			__uuidof(ID3D11Texture2D),
-			reinterpret_cast<LPVOID*>(backBuffer.GetAddressOf())
-		));
+				mSwapChain->GetBuffer(
+									  0,
+									  __uuidof(ID3D11Texture2D),
+									  reinterpret_cast<LPVOID*>(backBuffer.GetAddressOf())
+									 ));
 
 	D3D11_RENDER_TARGET_VIEW_DESC desc{};
 	{
@@ -240,19 +257,19 @@ void GraphicDevice::SetRenderTarget()
 		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	}
 	CheckResult(
-		mDevice->CreateRenderTargetView(
-			backBuffer.Get(),
-			&desc,
-			mRenderTargetView.GetAddressOf()
-		));
-	mDeviceContext->OMSetRenderTargets(1, mRenderTargetView.GetAddressOf(), mDepthStencilView.Get());
+				mDevice->CreateRenderTargetView(
+												backBuffer.Get(),
+												&desc,
+												mRenderTargetView.GetAddressOf()
+											   ));
+	mImmediateContext->OMSetRenderTargets(1, mRenderTargetView.GetAddressOf(), mDepthStencilView.Get());
 
 	// 2D Side RenderTarget (DWrite) 
 	CheckResult(
-		backBuffer->QueryInterface( // Query Interface
-			__uuidof(IDXGISurface), // 내가 원하는 자료형(ID)
-			reinterpret_cast<void**>(dxgiBackBuffer.GetAddressOf() // 담아질 개체
-			)));
+				backBuffer->QueryInterface( // Query Interface
+										   __uuidof(IDXGISurface), // 내가 원하는 자료형(ID)
+										   reinterpret_cast<void**>(dxgiBackBuffer.GetAddressOf() // 담아질 개체
+										   )));
 
 	D2D1_RENDER_TARGET_PROPERTIES props;
 	{
@@ -264,11 +281,11 @@ void GraphicDevice::SetRenderTarget()
 		props.minLevel    = D2D1_FEATURE_LEVEL_DEFAULT;
 	}
 	CheckResult(
-		mD2DFactory->CreateDxgiSurfaceRenderTarget(
-			dxgiBackBuffer.Get(),
-			&props,
-			mRenderTarget_2D.GetAddressOf()
-		));
+				mD2DFactory->CreateDxgiSurfaceRenderTarget(
+														   dxgiBackBuffer.Get(),
+														   &props,
+														   mRenderTarget_2D.GetAddressOf()
+														  ));
 
 	dxgiBackBuffer = nullptr;
 	backBuffer     = nullptr;
@@ -283,18 +300,18 @@ void GraphicDevice::SetViewportSize(uint32_t InWidth, uint32_t InHeight)
 	mViewport.MaxDepth = 1.f;
 	mViewport.TopLeftX = 0;
 	mViewport.TopLeftY = 0;
-	mDeviceContext->RSSetViewports(1, &mViewport);
+	mImmediateContext->RSSetViewports(1, &mViewport);
 }
 
 void GraphicDevice::ResizeSwapChain(uint32_t width, uint32_t height)
 {
 	CheckResult(
-		mSwapChain->ResizeBuffers(
-			mSwapChainDesc.BufferCount,
-			width, height,
-			mSwapChainDesc.BufferDesc.Format,
-			mSwapChainDesc.Flags)
-	);
+				mSwapChain->ResizeBuffers(
+										  mSwapChainDesc.BufferCount,
+										  width, height,
+										  mSwapChainDesc.BufferDesc.Format,
+										  mSwapChainDesc.Flags)
+			   );
 	mSwapChain->GetDesc(&mSwapChainDesc);
 }
 
@@ -304,7 +321,7 @@ void GraphicDevice::CleanResources()
 	mDepthStencilView   = nullptr;
 	mDepthStencilBuffer = nullptr;
 
-	mDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	mImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
 
 	mRenderTargetView = nullptr;
 	mRenderTarget_2D  = nullptr;

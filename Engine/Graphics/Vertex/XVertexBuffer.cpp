@@ -47,12 +47,12 @@ void XVertexBuffer::Render()
 	mWorldBuffer->Render();
 	mShader->Render();
 
-	G_Context.GetDeviceContext()->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), &stride, &offset);
-	G_Context.GetDeviceContext()->IASetIndexBuffer(mIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-	G_Context.GetDeviceContext()->IASetPrimitiveTopology(mPrimitiveType);
+	G_Context.GetImmediateDeviceContext()->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), &stride, &offset);
+	G_Context.GetImmediateDeviceContext()->IASetIndexBuffer(mIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+	G_Context.GetImmediateDeviceContext()->IASetPrimitiveTopology(mPrimitiveType);
 
-	// G_Context.GetDeviceContext()->Draw(3, 0);
-	G_Context.GetDeviceContext()->DrawIndexed(mIndices.size(), 0, 0);
+	// G_Context.GetImmediateDeviceContext()->Draw(3, 0);
+	G_Context.GetImmediateDeviceContext()->DrawIndexed(mIndices.size(), 0, 0);
 
 	
 }
