@@ -1,0 +1,419 @@
+﻿#include "common_pch.h"
+#include "GUI_AssetBrowser.h"
+
+#include "Core/Utils/Math/MathUtility.h"
+
+
+GUI_AssetBrowser::GUI_AssetBrowser(const char* InTitle)
+	: GUI_Base(InTitle),
+	  mIconHitSpacing(4),
+	  mZoomWheelAccum(0),
+	  mLayoutOuterPadding(0),
+	  mLayoutItemSpacing(),
+	  mLayoutSelectableSpacing(0),
+	  mIconSpacing(10),
+	  mLayoutColumnCount(0),
+	  mLayoutLineCount(0),
+	  mIconSize(32),
+	  bOpen(false),
+	  bAllowBoxSelect(true),
+	  bAllowDragUnselected(false),
+	  bRequestDelete(false),
+	  bShowTypeOverlay(true),
+	  bStretchSpacing(true),
+	  mCurrentDirectory(L"Game/"),
+	  mCachedDirectory(mCurrentDirectory) {}
+
+void GUI_AssetBrowser::Initialize()
+{
+	GUI_Base::Initialize();
+	g_IconList.CreateTextures();
+
+	AddItems(100);
+}
+
+void GUI_AssetBrowser::Update(float_t DeltaTime)
+{}
+
+void GUI_AssetBrowser::Release()
+{
+	GUI_Base::Release();
+}
+
+
+void GUI_AssetBrowser::Render()
+{
+	// HandleFile();
+
+	SetWindowSize(25, 15);
+
+	if (!ImGui::Begin(mTitle, &bOpen, ImGuiWindowFlags_MenuBar))
+	{
+		ImGui::End();
+		return;
+	}
+
+	// 창 내부 크기 설정
+	ImGui::SetNextWindowContentSize(ImVec2(0.0f, mLayoutOuterPadding + mLayoutLineCount *
+										   (mLayoutItemSize.x + mLayoutItemSpacing)));
+
+	// 창 내부에 독립적인 레이아웃(스크롤)을 가지는 UI 생성
+	if (ImGui::BeginChild("Assets", ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing()),
+						  ImGuiChildFlags_Border, ImGuiWindowFlags_NoMove))
+	{
+
+		// 창에서 남아있는 사용가능한 영역 확인
+		const float availableWidth = ImGui::GetContentRegionAvail().x;
+		UpdateLayoutSizes(availableWidth);
+
+		// 스크린(전체화면)에서의 현재 UI 커서 위치에 패딩을 더해준다. (내부 그리기 시작 위치 지정)
+		ImVec2 startPos = ImGui::GetCursorScreenPos();
+		startPos        = ImVec2(startPos.x + mLayoutOuterPadding, startPos.y + mLayoutOuterPadding);
+		ImGui::SetCursorScreenPos(startPos);
+
+		UpdateMultiSelection(startPos);
+
+		UpdateZoom(startPos, availableWidth);
+	}
+	ImGui::EndChild();
+
+	ImGui::Text("Selected: %d/%d items", mSelection.Size, mItems.size());
+	ImGui::End();
+
+}
+
+void GUI_AssetBrowser::AddItems(int32_t AddNum)
+{
+	int8_t indexID = 0;
+
+	mItems.reserve(mItems.size() + AddNum);
+
+	for (int32_t i = 0; i < AddNum; ++i, indexID++)
+	{
+		mItems.push_back(JAssetFileBrowser(std::to_string(indexID),
+										   (indexID % 20) < 15 ? 0 : (indexID % 20) < 18 ? 1 : 2));
+	}
+}
+
+void GUI_AssetBrowser::SetWindowSize(int32_t InWidth, int32_t InHeight) const
+{
+	// 창 외부 크기 설정
+	ImGui::SetNextWindowSize(
+							 ImVec2(
+									mIconSize * InWidth,
+									mIconSize * InHeight),
+							 ImGuiCond_FirstUseEver // 이 창에 대한 사전 설정이 없을 때만 
+							);
+}
+
+void GUI_AssetBrowser::UpdateMultiSelection(ImVec2 start_pos)
+{
+	ImGuiMultiSelectFlags msFlag;
+	SetMultiFlagOptions(msFlag);
+
+	ImGuiMultiSelectIO* msIO =
+	ImGui::BeginMultiSelect(
+							msFlag,
+							mSelection.Size, // [option] esc clear되는 flag같은 걸 넣었을때 이 값이 0이라면 비용을 아낄 수 있다
+							mItems.size() // [option] 아직 잘 모르겠다...
+						   );
+
+	// Use custom selection adapter: store ID in selection (recommended)
+	mSelection.UserData                = this;
+	mSelection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self_, int idx){
+		GUI_AssetBrowser* self = static_cast<GUI_AssetBrowser*>(self_->UserData);
+		return static_cast<ImGuiID>(self->mItems[idx].GetID());
+	};
+	mSelection.ApplyRequests(msIO);
+
+	const bool bWantDelete =
+	(ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat) && (mSelection.Size > 0)) || bRequestDelete;
+
+	const int focusItemIndexToDelete =
+	bWantDelete ? mSelection.ApplyDeletionPreLoop(msIO, mItems.size()) : -1;
+
+	UpdateClipperAndItemSpacing(msIO, start_pos, focusItemIndexToDelete);
+
+	// Context menu
+	if (ImGui::BeginPopupContextWindow())
+	{
+		ImGui::Text("mSelection: %d items", mSelection.Size);
+		ImGui::Separator();
+		if (ImGui::MenuItem("Delete", "Del", false, mSelection.Size > 0))
+			bRequestDelete = true;
+		ImGui::EndPopup();
+	}
+
+	msIO = ImGui::EndMultiSelect();
+	mSelection.ApplyRequests(msIO);
+	if (bWantDelete)
+		mSelection.ApplyDeletionPostLoop(msIO, mItems, focusItemIndexToDelete);
+}
+
+void GUI_AssetBrowser::SetMultiFlagOptions(ImGuiMultiSelectFlags& msFlag) const
+{
+	// Flag에 대한 부분은 imgui doc 참고(wip...)
+	// Multi-select	Flag										ESC		 |  empty location 누를시에 Clear
+	msFlag = ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_ClearOnClickVoid;
+
+	// - Enable box-select (in 2D mode, so that changing box-select rectangle X1/X2 boundaries will affect clipped items)
+	if (bAllowBoxSelect)
+		msFlag |= ImGuiMultiSelectFlags_BoxSelect1d;
+
+	// - This feature allows dragging an unselected item without selecting it (rarely used)
+	if (bAllowDragUnselected)
+		msFlag |= ImGuiMultiSelectFlags_SelectOnClickRelease;
+
+	// - Enable keyboard wrapping on X axis
+	// (FIXME-MULTISELECT: We haven't designed/exposed a general nav wrapping api yet, so this flag is provided as a courtesy to avoid doing:
+	//    ImGui::NavMoveRequestTryWrapping(ImGui::GetCurrentWindow(), ImGuiNavMoveFlags_WrapX);
+	// When we finish implementing a more general API for this, we will obsolete this flag in favor of the new system)
+	msFlag |= ImGuiMultiSelectFlags_NavWrapX;
+}
+
+void GUI_AssetBrowser::UpdateLayoutSizes(float InAvailWidth)
+{
+	mLayoutItemSpacing = mIconSpacing;
+	if (!bStretchSpacing)
+	{
+		InAvailWidth += floorf(mLayoutItemSpacing * 0.5f);
+	}
+
+	mLayoutItemSize    = ImVec2(mIconSize, mIconSize);
+	mLayoutColumnCount = max((int)(InAvailWidth / (mLayoutItemSize.x + mLayoutItemSpacing)), 1);
+	mLayoutLineCount   = (mItems.size() + mLayoutColumnCount - 1) / mLayoutColumnCount;
+
+	if (bStretchSpacing && mLayoutColumnCount > 1)
+		mLayoutItemSpacing = floorf(InAvailWidth - mLayoutItemSize.x * mLayoutColumnCount) / mLayoutColumnCount;
+
+	mLayoutItemStep          = ImVec2(mLayoutItemSize.x + mLayoutItemSpacing, mLayoutItemSize.y + mLayoutItemSpacing);
+	mLayoutSelectableSpacing = max(floorf(mLayoutItemSpacing) - mIconHitSpacing, 0.0f);
+	mLayoutOuterPadding      = floorf(mLayoutItemSpacing * 0.5f);
+}
+
+void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImVec2 startPos, int focusItemIndexToDelete)
+{
+	bRequestDelete = false;
+
+	// Push LayoutSelectableSpacing (which is LayoutItemSpacing minus hit-spacing, if we decide to have hit gaps between items)
+	// Altering style ItemSpacing may seem unnecessary as we position every items using SetCursorScreenPos()...
+	// But it is necessary for two reasons:
+	// - Selectables uses it by default to visually fill the space between two items.
+	// - The vertical spacing would be measured by Clipper to calculate line height if we didn't provide it explicitly (here we do).
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(mLayoutSelectableSpacing, mLayoutSelectableSpacing));
+
+	// Rendering parameters
+	const ImU32  icon_type_overlay_colors[3] = {0, IM_COL32(200, 70, 70, 255), IM_COL32(70, 170, 70, 255)};
+	const ImU32  icon_bg_color               = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
+	const ImVec2 icon_type_overlay_size      = ImVec2(4.0f, 4.0f);
+	const bool   display_label               = (mLayoutItemSize.x >= ImGui::CalcTextSize("999").x);
+
+	const int columnCount = mLayoutColumnCount;
+
+	// 대량의 항목을 렌더할 때 보이지 않는 부분들은 자동으로 제외시키는 ClipperList
+	ImGuiListClipper clipper;
+
+	clipper.Begin(mLayoutLineCount, mLayoutItemStep.y);
+
+	if (focusItemIndexToDelete != -1)
+		clipper.IncludeItemByIndex(focusItemIndexToDelete / columnCount); // Ensure focused item line is not clipped.
+	if (msIO->RangeSrcItem != -1)
+		clipper.
+		IncludeItemByIndex(static_cast<int>(msIO->RangeSrcItem) /
+						   columnCount); // Ensure RangeSrc item line is not clipped.
+
+	// 범위 내 렌더
+	while (clipper.Step())
+	{
+		for (int lineIndex = clipper.DisplayStart; lineIndex < clipper.DisplayEnd; lineIndex++)
+		{
+			// 라인 시작 인덱스 (한줄에 10개씩이면 0, 11, 21 ...)
+			const int itemLineIndex = lineIndex * columnCount;
+			// 라인 끝 인덱스 (10, 20, 30 ...)
+			const int itemLineIndexEnd = min((lineIndex + 1) * columnCount, mItems.Size);
+
+			// 한 줄씩 렌더링 시작
+			for (int itemIndex = itemLineIndex; itemIndex < itemLineIndexEnd; ++itemIndex)
+			{
+				JAssetFileBrowser* itemData = &mItems[itemIndex];
+
+#pragma region Handle Each Item
+				// 특정 ID에 대한 아이템 처리 시작
+				ImGui::PushID(itemData->GetID());
+
+				// Set Position item
+				ImVec2 pos = ImVec2(startPos.x + (itemIndex % columnCount) * mLayoutItemStep.x,
+									startPos.y + lineIndex * mLayoutItemStep.y);
+				ImGui::SetCursorScreenPos(pos);
+
+				// Visualize 업데이트
+				ImGui::SetNextItemSelectionUserData(itemIndex);
+				bool bIsItemSelected = mSelection.Contains((ImGuiID)itemData->GetID());
+				bool bItemIsVisible  = ImGui::IsRectVisible(mLayoutItemSize);
+				ImGui::Selectable("", bIsItemSelected, ImGuiSelectableFlags_None, mLayoutItemSize);
+
+				// Update our selection state immediately (without waiting for EndMultiSelect() requests)
+				// because we use this to alter the color of our text/icon.
+				if (ImGui::IsItemToggledSelection())
+					bIsItemSelected = !bIsItemSelected;
+
+				// Focus (for after deletion)
+				if (focusItemIndexToDelete == itemIndex)
+					ImGui::SetKeyboardFocusHere(-1);
+
+				// Drag and drop
+				if (ImGui::BeginDragDropSource())
+				{
+					// Create payload with full selection OR single unselected item.
+					// (the later is only possible when using ImGuiMultiSelectFlags_SelectOnClickRelease)
+					if (ImGui::GetDragDropPayload() == NULL)
+					{
+						ImVector<ImGuiID> payload_items;
+						void*             it = NULL;
+						ImGuiID           id = 0;
+						if (!bIsItemSelected)
+							payload_items.push_back(itemData->GetID());
+						else
+							while (mSelection.GetNextSelectedItem(&it, &id))
+								payload_items.push_back(id);
+						ImGui::SetDragDropPayload("ASSETS_BROWSER_ITEMS", payload_items.Data,
+												  (size_t)payload_items.size_in_bytes());
+					}
+
+					// Display payload content in tooltip, by extracting it from the payload data
+					// (we could read from selection, but it is more correct and reusable to read from payload)
+					const ImGuiPayload* payload       = ImGui::GetDragDropPayload();
+					const int           payload_count = (int)payload->DataSize / (int)sizeof(ImGuiID);
+					ImGui::Text("%d assets", payload_count);
+
+					ImGui::EndDragDropSource();
+				}
+
+				// Render icon (a real app would likely display an image/thumbnail here)
+				// Because we use ImGuiMultiSelectFlags_BoxSelect2d, clipping vertical may occasionally be larger, so we coarse-clip our rendering as well.
+				if (bItemIsVisible)
+				{
+					ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+					ImVec2 box_min(pos.x - 1, pos.y - 1);
+					ImVec2 box_max(box_min.x + mLayoutItemSize.x + 2, box_min.y + mLayoutItemSize.y + 2); // Dubious
+					draw_list->AddRectFilled(box_min, box_max, icon_bg_color); // Background color
+
+					if (itemData->GetType() != 0)
+					{
+						draw_list->AddImage(g_IconList.FolderIcon->GetSRV(), box_min + ImVec2(2, 2),
+											box_max - ImVec2(2, 2));
+					}
+
+					if (bShowTypeOverlay /*&& item_data->GetType() != 0*/)
+					{
+						ImU32 type_col = icon_type_overlay_colors[itemData->GetType() %
+							IM_ARRAYSIZE(icon_type_overlay_colors)];
+						draw_list->AddRectFilled(ImVec2(box_max.x - 2 - icon_type_overlay_size.x, box_min.y + 2),
+												 ImVec2(box_max.x - 2, box_min.y + 2 + icon_type_overlay_size.y),
+												 type_col);
+					}
+					if (display_label)
+					{
+						ImU32 label_col = ImGui::GetColorU32(bIsItemSelected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
+						draw_list->AddText(ImVec2(box_min.x, box_max.y - ImGui::GetFontSize()),
+										   label_col,
+										   itemData->GetIDText().data());
+					}
+				}
+
+				ImGui::PopID();
+#pragma endregion
+			}
+		}
+	}
+	clipper.End();
+	ImGui::PopStyleVar(); // ImGuiStyleVar_ItemSpacing
+}
+
+void GUI_AssetBrowser::UpdateZoom(ImVec2 startPos, float availableWidth)
+{
+	ImGuiIO& io = ImGui::GetIO();
+
+	// Zooming with CTRL+Wheel
+	if (ImGui::IsWindowAppearing())
+		mZoomWheelAccum = 0.0f;
+	if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f && ImGui::IsKeyDown(ImGuiMod_Ctrl) &&
+		ImGui::IsAnyItemActive() == false)
+	{
+		mZoomWheelAccum += io.MouseWheel;
+		if (fabsf(mZoomWheelAccum) >= 1.0f)
+		{
+			// Calculate hovered item index from mouse location
+			// FIXME: Locking aiming on 'hovered_item_idx' (with a cool-down timer) would ensure zoom keeps on it.
+			const float hoveredItemX     = (io.MousePos.x - startPos.x + mLayoutItemSpacing * 0.5f) / mLayoutItemStep.x;
+			const float hoveredItemY     = (io.MousePos.y - startPos.y + mLayoutItemSpacing * 0.5f) / mLayoutItemStep.y;
+			const int   hoveredItemIndex = (static_cast<int>(hoveredItemY) * mLayoutColumnCount) + static_cast<int>(
+				hoveredItemX);
+			//ImGui::SetTooltip("%f,%f -> item %d", hovered_item_nx, hovered_item_ny, hovered_item_idx); // Move those 4 lines in block above for easy debugging
+
+			// Zoom
+			mIconSize *= powf(1.1f, mZoomWheelAccum);
+			mIconSize = FMath::Clamp(mIconSize, 16, 128);
+			mZoomWheelAccum -= static_cast<int>(mZoomWheelAccum);
+			UpdateLayoutSizes(availableWidth);
+
+			// Manipulate scroll to that we will land at the same Y location of currently hovered item.
+			// - Calculate next frame position of item under mouse
+			// - Set new scroll position to be used in next ImGui::BeginChild() call.
+			float hovered_item_rel_pos_y = (static_cast<float>(hoveredItemIndex / mLayoutColumnCount) +
+				fmodf(hoveredItemY, 1.0f)) * mLayoutItemStep.y;
+			hovered_item_rel_pos_y += ImGui::GetStyle().WindowPadding.y;
+			float mouse_local_y = io.MousePos.y - ImGui::GetWindowPos().y;
+			ImGui::SetScrollY(hovered_item_rel_pos_y - mouse_local_y);
+		}
+	}
+}
+
+void GUI_AssetBrowser::HandleFile()
+{
+	mFolders.clear();
+
+	if (!fs::exists(mCurrentDirectory))
+	{
+		LOG_CORE_ERROR("Asset Browser : Invalid Directory");
+		return;
+	}
+
+	mCachedDirectory = mCurrentDirectory;
+	auto currentPath = fs::path(mCurrentDirectory);
+
+	if (currentPath.has_parent_path())
+	{
+		mFolders.emplace_back(currentPath.parent_path());
+	}
+
+	for (auto& dir : fs::directory_iterator(currentPath))
+	{
+		if (fs::is_directory(dir))
+		{
+			mFolders.emplace_back(dir.path());
+		}
+		// else if (fs::is_regular_file(dir))
+		// {
+		// 	mItems.emplace_back(dir);
+		// }
+	}
+
+
+	// JWText directory = mCurrentDirectory;
+	//
+	// std::filesystem::path path(directory);
+	//
+	//
+	// if (!std::filesystem::is_directory(directory))
+	// {
+	// 	const auto dirPath = std::filesystem::path(directory);
+	// 	if (dirPath.has_parent_path())
+	// 	{
+	// 		directory = dirPath.parent_path().wstring();
+	// 	}
+	// }
+
+
+}
