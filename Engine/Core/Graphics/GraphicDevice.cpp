@@ -1,8 +1,11 @@
 ﻿#include "common_pch.h"
 #include "GraphicDevice.h"
+
+#include "Core/Utils/Logger.h"
 #include "Debug/Assert.h"
-#include "Utils/Math/Color.h"
-#include "Window/Window.h"
+#include "Core/Utils/Math/Color.h"
+#include "Viewport/MViewportManager.h"
+#include "Core/Window/Window.h"
 
 GraphicDevice::GraphicDevice()
 	: mSwapChainDesc(),
@@ -39,13 +42,15 @@ void GraphicDevice::Initialize()
 
 void GraphicDevice::Update(float_t DeltaTime)
 {
-
 	mImmediateContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	mImmediateContext->OMSetRenderTargets(1, mRenderTargetView.GetAddressOf(), mDepthStencilView.Get());
+
 	SetDepthEnable(true);
+
+	mImmediateContext->OMSetRenderTargets(1, mRenderTargetView.GetAddressOf(), mDepthStencilView.Get());
+	mImmediateContext->RSSetViewports(1, &mViewport);
 }
 
-void GraphicDevice::Render()
+void GraphicDevice::Present()
 {
 	// 후면 버퍼 렌더
 	CheckResult(
@@ -74,7 +79,6 @@ void GraphicDevice::ClearColor(const FLinearColor& InColor) const
 	mImmediateContext->ClearRenderTargetView(mRenderTargetView.Get(), InColor.RGBA);
 }
 
-
 void GraphicDevice::SetDepthEnable(bool bEnable) const
 {
 	mImmediateContext->OMSetDepthStencilState(bEnable ? mDepthStencilState.Get() : nullptr, 1);
@@ -90,15 +94,17 @@ void GraphicDevice::CreateDevice()
 	};
 	D3D_FEATURE_LEVEL outFeatureLevel;
 
+	UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+#ifdef _DEBUG
+	flags |= D3D11_CREATE_DEVICE_DEBUG; // 디버그 활성화
+#endif
+
 	CheckResult(
 				D3D11CreateDevice(
 								  nullptr,                  // 주 모니터 사용
 								  D3D_DRIVER_TYPE_HARDWARE, // 하드웨어 가속 사용
 								  nullptr,                  // 하드웨어 사용
-#ifdef _DEBUG
-								  D3D11_CREATE_DEVICE_DEBUG | // 디버그 활성화
-#endif
-								  D3D11_CREATE_DEVICE_BGRA_SUPPORT, // flags
+								  flags,					// flags
 								  featureLevels,                    // 기능 수준
 								  ARRAYSIZE(featureLevels),         // 기능 배열 개수
 								  D3D11_SDK_VERSION,                // DX Version
@@ -147,33 +153,44 @@ void GraphicDevice::CreateGIFactory()
 								 ));
 }
 
+/*
+ * blt-model(버퍼 복사) -> flip-model (버퍼 교체)
+ * SwapChainDesc -> SwapChainDesc1
+ */
 void GraphicDevice::CreateSwapChain()
 {
-	ZeroMemory(&mSwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
+	ZeroMemory(&mSwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
 	{
-		mSwapChainDesc.BufferCount                        = 1;
-		mSwapChainDesc.BufferDesc.Width                   = Window::GetWindow()->GetWindowWidth(); // Buffer Width
-		mSwapChainDesc.BufferDesc.Height                  = Window::GetWindow()->GetWindowHeight(); // Buffer Height
-		mSwapChainDesc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM; // 색상 출력 형식
-		mSwapChainDesc.BufferDesc.RefreshRate.Numerator   = 60; // FPS 분자 TODO: 고정 주사율 설정
-		mSwapChainDesc.BufferDesc.RefreshRate.Denominator = 1; // FPS 분모
-		mSwapChainDesc.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 버퍼 (렌더링 버퍼)
-		mSwapChainDesc.OutputWindow                       = Window::GetWindow()->GetWindowHandle(); // 출력될 윈도우 핸들
-		mSwapChainDesc.SampleDesc.Count                   = 1; // 멀티 샘플링 개수
-		mSwapChainDesc.SampleDesc.Quality                 = 0; // 멀티 샘플링 품질
-		mSwapChainDesc.Windowed                           = !Window::GetWindow()->IsFullScreen(); // 창 전체 화면 모드
-		mSwapChainDesc.SwapEffect                         = DXGI_SWAP_EFFECT_DISCARD; // Swap이 일어난 이후 버퍼를 Discard
-		mSwapChainDesc.Flags                              = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // 적합한 디스플레이로 자동전환
+
+		mSwapChainDesc.BufferCount        = 2;
+		mSwapChainDesc.Width              = Window::GetWindow()->GetWindowWidth(); // Buffer Width
+		mSwapChainDesc.Height             = Window::GetWindow()->GetWindowHeight(); // Buffer Height
+		mSwapChainDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM; // 색상 출력 형식
+		mSwapChainDesc.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 버퍼 (렌더링 버퍼)
+		mSwapChainDesc.SampleDesc.Count   = 1; // 멀티 샘플링 개수
+		mSwapChainDesc.SampleDesc.Quality = 0; // 멀티 샘플링 품질
+		mSwapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_DISCARD; // Swap이 일어난 이후 버퍼를 Discard
+		mSwapChainDesc.Scaling            = DXGI_SCALING_NONE; // Scaling 없음
+		mSwapChainDesc.Stereo             = FALSE; // 스테레오 사용하지 않음
+		mSwapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 적합한 디스플레이로 자동전환
 	}
 
 	CheckResult(
-				mGIFactory->CreateSwapChain(
-											mDevice.Get(),
-											&mSwapChainDesc,
-											mSwapChain.GetAddressOf()
-										   ));
+				mGIFactory->CreateSwapChainForHwnd(
+												   mDevice.Get(),
+												   Window::GetWindow()->GetWindowHandle(),
+												   &mSwapChainDesc,
+												   nullptr,
+												   nullptr,
+												   reinterpret_cast<IDXGISwapChain1**>(mSwapChain.GetAddressOf())
+												  ));
+	// CheckResult(
+	// 			mGIFactory->CreateSwapChain(
+	// 										mDevice.Get(),
+	// 										&mSwapChainDesc,
+	// 										mSwapChain.GetAddressOf()
+	// 									   ));
 }
-
 
 void GraphicDevice::Create2DResources()
 {
@@ -196,8 +213,8 @@ void GraphicDevice::SetDepthStencil()
 {
 	// Depth Stencil Buffer
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width              = mSwapChainDesc.BufferDesc.Width;
-	depthStencilDesc.Height             = mSwapChainDesc.BufferDesc.Height;
+	depthStencilDesc.Width              = mSwapChainDesc.Width;
+	depthStencilDesc.Height             = mSwapChainDesc.Height;
 	depthStencilDesc.MipLevels          = 1;
 	depthStencilDesc.ArraySize          = 1;
 	depthStencilDesc.Format             = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -246,7 +263,7 @@ void GraphicDevice::SetRenderTarget()
 
 	CheckResult(
 				mSwapChain->GetBuffer(
-									  0,
+									  0, // 백버퍼 인덱스 (front, back버퍼 두개 뿐이므로) 0
 									  __uuidof(ID3D11Texture2D),
 									  reinterpret_cast<LPVOID*>(backBuffer.GetAddressOf())
 									 ));
@@ -255,13 +272,28 @@ void GraphicDevice::SetRenderTarget()
 	{
 		desc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		/*
+		 *  DXGI_FORMAT Format; // 리소스 데이터 해석 포맷
+		D3D11_RTV_DIMENSION ViewDimension; // 리소스가 액세스 되는 방법. 이 값에 의해서 아래의 union의 멤버 가운데, 사용할 변수가 결정된다.
+			union {
+			D3D11_BUFFER_RTV Buffer;
+			D3D11_TEX1D_RTV Texture1D;
+			D3D11_TEX1D_ARRAY_RTV Texture1DArray;
+			D3D11_TEX2D_RTV Texture2D;
+			D3D11_TEX2D_ARRAY_RTV Texture2DArray;
+			D3D11_TEX2DMS_RTV Texture2DMS;
+			D3D11_TEX2DMS_ARRAY_RTV Texture2DMSArray;
+			D3D11_TEX3D_RTV Texture3D;
+			} ;
+		 */
 	}
 	CheckResult(
-				mDevice->CreateRenderTargetView(
-												backBuffer.Get(),
-												&desc,
-												mRenderTargetView.GetAddressOf()
-											   ));
+				mDevice->
+				CreateRenderTargetView( // RenderTargetView가 생성된 이후로는 직접 BackBuffer에 접근하지 말고 View를 이용한다. (backBuffer해제)
+									   backBuffer.Get(), // BackBuffer로 부터 View를 생성
+									   nullptr, // 일반적인 경우 Default값 NULL을 넣어줘도 무방
+									   mRenderTargetView.GetAddressOf()
+									  ));
 	mImmediateContext->OMSetRenderTargets(1, mRenderTargetView.GetAddressOf(), mDepthStencilView.Get());
 
 	// 2D Side RenderTarget (DWrite) 
@@ -291,7 +323,6 @@ void GraphicDevice::SetRenderTarget()
 	backBuffer     = nullptr;
 }
 
-
 void GraphicDevice::SetViewportSize(uint32_t InWidth, uint32_t InHeight)
 {
 	mViewport.Width    = static_cast<float_t>(InWidth);
@@ -309,10 +340,10 @@ void GraphicDevice::ResizeSwapChain(uint32_t width, uint32_t height)
 				mSwapChain->ResizeBuffers(
 										  mSwapChainDesc.BufferCount,
 										  width, height,
-										  mSwapChainDesc.BufferDesc.Format,
+										  mSwapChainDesc.Format,
 										  mSwapChainDesc.Flags)
 			   );
-	mSwapChain->GetDesc(&mSwapChainDesc);
+	mSwapChain->GetDesc1(&mSwapChainDesc);
 }
 
 void GraphicDevice::CleanResources()
