@@ -11,6 +11,10 @@ using klassName##UPtr = std::unique_ptr<klassName>;\
 using klassName##Ptr = std::shared_ptr<klassName>;\
 using klassName##WPtr = std::weak_ptr<klassName>;
 
+template <typename T>
+using UPtr = std::unique_ptr<T>;
+template <typename T>
+using Ptr = std::shared_ptr<T>;
 
 inline JWText String2WString(const JText& InString)
 {

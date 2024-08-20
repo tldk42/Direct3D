@@ -2,11 +2,13 @@
 
 #include "GUI_Base.h"
 
+class JCamera;
+
 class GUI_Viewport : public GUI_Base
 {
 public:
 	explicit GUI_Viewport(const std::string& InTitle);
-	~GUI_Viewport() override = default;
+	~GUI_Viewport();
 
 public:
 	void Initialize() override;

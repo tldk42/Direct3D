@@ -84,6 +84,7 @@
     <ClCompile Include="common_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Core\Entity\Actor\JActor.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CConstantBuffer.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CViewBuffer.cpp" />
@@ -92,7 +93,7 @@
     <ClCompile Include="Core\Graphics\Font\XTKFont.cpp" />
     <ClCompile Include="Core\Graphics\GraphicDevice.cpp" />
     <ClCompile Include="Core\Graphics\Layer\XLayerBase.cpp" />
-    <ClCompile Include="Core\Graphics\Mesh\XMesh.cpp" />
+    <ClCompile Include="Core\Graphics\Mesh\XStaticMesh.cpp" />
     <ClCompile Include="Core\Graphics\Renderer.cpp" />
     <ClCompile Include="Core\Graphics\Shader\MShaderManager.cpp" />
     <ClCompile Include="Core\Graphics\Shader\XShader.cpp" />
@@ -106,8 +107,90 @@
     <ClCompile Include="Core\Input\XKeyboardMouse.cpp" />
     <ClCompile Include="Core\Interface\MManagerInterface.cpp" />
     <ClCompile Include="Core\JCamera.cpp" />
-    <ClCompile Include="Core\JObject.cpp" />
     <ClCompile Include="Core\Manager\BaseManager.cpp" />
+    <ClCompile Include="Core\Entity\JObject.cpp">
+      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerListingLocation>../../bin/Debug\JacobEngine\Engine\Intermediate/</AssemblerListingLocation>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</BrowseInformationFile>
+      <CompileAs>Default</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DiagnosticsFormat>Column</DiagnosticsFormat>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <EnableASAN>false</EnableASAN>
+      <EnableFuzzer>false</EnableFuzzer>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <GenerateModuleDependencies>false</GenerateModuleDependencies>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ModuleDependenciesFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</ModuleDependenciesFile>
+      <ModuleOutputFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</ModuleOutputFile>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <ObjectFileName>../../bin/Debug\JacobEngine\Engine\Intermediate/</ObjectFileName>
+      <CallingConvention>Cdecl</CallingConvention>
+      <ProgramDataBaseFileName>../../bin/Debug\JacobEngine\Engine\Intermediate/vc143.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>common_pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>../../bin/Debug\JacobEngine\Engine\Intermediate/Engine.pch</PrecompiledHeaderOutputFile>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ShowIncludes>false</ShowIncludes>
+      <SourceDependenciesFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</SourceDependenciesFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <SpectreMitigation>false</SpectreMitigation>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TrackerLogDirectory>../../bin/Debug\JacobEngine\Engine\Intermediate/Engine.tlog\</TrackerLogDirectory>
+      <TranslateIncludes>false</TranslateIncludes>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <UseFullPaths>true</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <XMLDocumentationFileName>../../bin/Debug\JacobEngine\Engine\Intermediate/</XMLDocumentationFileName>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <BuildStlModules>false</BuildStlModules>
+      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+      <IncludeInUnityFile>true</IncludeInUnityFile>
+      <UnityFilesDirectory>../../bin/Debug\JacobEngine\Engine\Intermediate/</UnityFilesDirectory>
+      <OrderInUnityFile>100</OrderInUnityFile>
+      <CombineFilesOnlyFromTheSameFolder>false</CombineFilesOnlyFromTheSameFolder>
+      <MinFilesInUnityFile>2</MinFilesInUnityFile>
+      <MaxFilesInUnityFile>0</MaxFilesInUnityFile>
+      <MinUnityFiles>1</MinUnityFiles>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;; _WINSOCK_DEPRECATED_NO_WARNINGS; IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4838</DisableSpecificWarnings>
+      <LinkCompiled>true</LinkCompiled>
+      <AdditionalIncludeDirectories>;D:\source\vcpkg\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="Core\Utils\FileIO\Serialization.cpp" />
     <ClCompile Include="Core\Utils\Logger.cpp" />
     <ClCompile Include="Core\Utils\Math\Color.cpp" />
@@ -135,6 +218,7 @@
   <ItemGroup>
     <ClInclude Include="common_include.h" />
     <ClInclude Include="common_pch.h" />
+    <ClInclude Include="Core\Entity\Actor\JActor.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CConstantBuffer.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CViewBuffer.h" />
@@ -145,7 +229,7 @@
     <ClInclude Include="Core\Graphics\GraphicDevice.h" />
     <ClInclude Include="Core\Graphics\graphics_common_include.h" />
     <ClInclude Include="Core\Graphics\Layer\XLayerBase.h" />
-    <ClInclude Include="Core\Graphics\Mesh\XMesh.h" />
+    <ClInclude Include="Core\Graphics\Mesh\XStaticMesh.h" />
     <ClInclude Include="Core\Graphics\Renderer.h" />
     <ClInclude Include="Core\Graphics\Shader\InputLayouts.h" />
     <ClInclude Include="Core\Graphics\Shader\MShaderManager.h" />
@@ -161,8 +245,8 @@
     <ClInclude Include="Core\Interface\MManagerInterface.h" />
     <ClInclude Include="Core\Interface\IRenderable.h" />
     <ClInclude Include="Core\JCamera.h" />
-    <ClInclude Include="Core\JObject.h" />
     <ClInclude Include="Core\Manager\Manager_Base.h" />
+    <ClInclude Include="Core\Entity\JObject.h" />
     <ClInclude Include="Core\Utils\FileIO\Serialization.h" />
     <ClInclude Include="Core\Utils\HelperFunction.h" />
     <ClInclude Include="Core\Utils\Logger.h" />
