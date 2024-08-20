@@ -14,11 +14,11 @@ enum class EGUIType : uint8_t
 	Max
 };
 
-#define Manager_GUI GUIManager::Get()
+#define Manager_GUI MGUIManager::Get()
 
 CLASS_PTR(GUI_Base)
 
-class GUIManager : public ICoreInterface, public TSingleton<GUIManager>
+class MGUIManager : public ICoreInterface, public Manager_Base<GUI_Base, MGUIManager>
 {
 public:
 	void Initialize() override;
@@ -31,25 +31,25 @@ public:
 	void AddGUI(EGUIType InType);
 	void HideGUI(EGUIType InType);
 	void DeleteGUI(EGUIType InType);
+	void ScaleAllSize(float InScale);
 
 private:
 	void InitializeStaticGUI();
-	void UpdateStaticGUI();
+	void UpdateStaticGUI(float DeltaTime);
 
-private:
-	std::vector<GUI_BaseUPtr> mStaticGUIs; // 기본 엔진 GUI (변경 사항 X) 
 
 #pragma region Singleton Boilerplate
 
 private:
-	friend class TSingleton<GUIManager>;
+	friend class TSingleton<MGUIManager>;
+	friend class MManagerInterface;
 
-	GUIManager();
-	~GUIManager() override;
+	MGUIManager();
+	~MGUIManager() override;
 
 public:
-	GUIManager(const GUIManager&)            = delete;
-	GUIManager& operator=(const GUIManager&) = delete;
+	MGUIManager(const MGUIManager&)            = delete;
+	MGUIManager& operator=(const MGUIManager&) = delete;
 
 #pragma endregion
 };

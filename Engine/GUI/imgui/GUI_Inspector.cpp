@@ -1,8 +1,9 @@
 ﻿#include "common_pch.h"
 #include "GUI_Inspector.h"
 
-GUI_Inspector::GUI_Inspector(const char* InTitle)
+GUI_Inspector::GUI_Inspector(const std::string& InTitle)
 	: GUI_Base(InTitle) {}
+
 
 void GUI_Inspector::Initialize()
 {
@@ -12,6 +13,13 @@ void GUI_Inspector::Initialize()
 void GUI_Inspector::Update(float_t DeltaTime)
 {
 	GUI_Base::Update(DeltaTime);
+	ImGui::Begin(mTitle.c_str(), &bVisible);
+	{
+		ImVec2 curSize = ImGui::GetContentRegionAvail();
+
+
+		ImGui::End();
+	}
 }
 
 void GUI_Inspector::Release()
@@ -20,13 +28,4 @@ void GUI_Inspector::Release()
 }
 
 void GUI_Inspector::Render()
-{
-	ImGui::Begin(mTitle);
-	{
-		ImVec2 curSize = ImGui::GetContentRegionAvail();
-
-
-		
-		ImGui::End();
-	}
-}
+{}

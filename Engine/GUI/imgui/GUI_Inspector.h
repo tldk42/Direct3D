@@ -6,7 +6,7 @@
 class GUI_Inspector : public GUI_Base
 {
 public:
-	GUI_Inspector(const char* InTitle);
+	GUI_Inspector(const std::string& InTitle);
 	~GUI_Inspector() override = default;
 
 public:

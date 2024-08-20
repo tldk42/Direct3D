@@ -1,17 +1,6 @@
 {
   "dependencies": [
     "spdlog",
-    "directxtk",
-    {
-      "name": "imgui",
-      "features": [
-        {
-          "name": "dx11-binding"
-        },
-        {
-          "name": "win32-binding"
-        }
-      ]
-    }
+    "directxtk"
   ]
 }

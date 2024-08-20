@@ -43,12 +43,13 @@
     <OutDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Output/</OutDir>
     <IntDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Intermediate/</IntDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
+    <ExternalIncludePath>$(ExternalIncludePath);$(_ZVcpkgCurrentInstalledDir)include; Vendor/</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions); </PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions); _WINSOCK_DEPRECATED_NO_WARNINGS; IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -58,7 +59,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies);$(_ZVcpkgCurrentInstalledDir)$(_ZVcpkgConfigSubdir)lib\*.lib;d3d11.lib;dxgi.lib;d2d1.lib;dwrite.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(_ZVcpkgCurrentInstalledDir)$(_ZVcpkgConfigSubdir)lib\*.lib;d3d11.lib;dxgi.lib;d2d1.lib;dwrite.lib;d3dcompiler.lib;xinput9_1_0.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -67,7 +68,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_WINSOCK_DEPRECATED_NO_WARNINGS;IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -83,66 +84,124 @@
     <ClCompile Include="common_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Core\Graphics\ConstantBuffer\CConstantBuffer.cpp" />
+    <ClCompile Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.cpp" />
+    <ClCompile Include="Core\Graphics\ConstantBuffer\CViewBuffer.cpp" />
+    <ClCompile Include="Core\Graphics\ConstantBuffer\CWorldBuffer.cpp" />
+    <ClCompile Include="Core\Graphics\Font\XDWrite.cpp" />
+    <ClCompile Include="Core\Graphics\Font\XTKFont.cpp" />
+    <ClCompile Include="Core\Graphics\GraphicDevice.cpp" />
+    <ClCompile Include="Core\Graphics\Layer\XLayerBase.cpp" />
+    <ClCompile Include="Core\Graphics\Mesh\XMesh.cpp" />
+    <ClCompile Include="Core\Graphics\Renderer.cpp" />
+    <ClCompile Include="Core\Graphics\Shader\MShaderManager.cpp" />
+    <ClCompile Include="Core\Graphics\Shader\XShader.cpp" />
+    <ClCompile Include="Core\Graphics\State\SamplerState.cpp" />
+    <ClCompile Include="Core\Graphics\Texture\MTextureManager.cpp" />
+    <ClCompile Include="Core\Graphics\Texture\XTexture2D.cpp" />
+    <ClCompile Include="Core\Graphics\Vertex\XTKPrimitiveBatch.cpp" />
+    <ClCompile Include="Core\Graphics\Vertex\XVertexBuffer.cpp" />
+    <ClCompile Include="Core\Graphics\Viewport\MViewportManager.cpp" />
+    <ClCompile Include="Core\Input\XController.cpp" />
+    <ClCompile Include="Core\Input\XKeyboardMouse.cpp" />
+    <ClCompile Include="Core\Interface\MManagerInterface.cpp" />
+    <ClCompile Include="Core\JCamera.cpp" />
     <ClCompile Include="Core\JObject.cpp" />
+    <ClCompile Include="Core\Manager\BaseManager.cpp" />
+    <ClCompile Include="Core\Utils\FileIO\Serialization.cpp" />
+    <ClCompile Include="Core\Utils\Logger.cpp" />
+    <ClCompile Include="Core\Utils\Math\Color.cpp" />
+    <ClCompile Include="Core\Utils\Math\Math.cpp" />
+    <ClCompile Include="Core\Window\Application.cpp" />
+    <ClCompile Include="Core\Window\Window.cpp" />
     <ClCompile Include="EntryPoint.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">common_pch.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="Graphics\ConstantBuffer\CConstantBuffer.cpp" />
-    <ClCompile Include="Graphics\ConstantBuffer\CProjectionBuffer.cpp" />
-    <ClCompile Include="Graphics\ConstantBuffer\CViewBuffer.cpp" />
-    <ClCompile Include="Graphics\ConstantBuffer\CWorldBuffer.cpp" />
-    <ClCompile Include="Graphics\Font\XDWrite.cpp" />
-    <ClCompile Include="Graphics\GraphicDevice.cpp" />
-    <ClCompile Include="Graphics\Shader\ShaderManager.cpp" />
-    <ClCompile Include="Graphics\Shader\XShader.cpp" />
-    <ClCompile Include="Graphics\State\SamplerState.cpp" />
-    <ClCompile Include="Graphics\Texture\XTexture2D.cpp" />
-    <ClCompile Include="Graphics\Vertex\XVertexBuffer.cpp" />
-    <ClCompile Include="GUI\Chatting\GUI_Chat.cpp" />
-    <ClCompile Include="Manager\BaseManager.cpp" />
-    <ClCompile Include="Utils\Logger.cpp" />
-    <ClCompile Include="Utils\Math\Color.cpp" />
-    <ClCompile Include="Utils\Math\Math.cpp" />
-    <ClCompile Include="Window\Application.cpp" />
-    <ClCompile Include="Window\Window.cpp" />
+    <ClCompile Include="GUI\MGUIManager.cpp" />
+    <ClCompile Include="GUI\imgui\GUI_AssetBrowser.cpp" />
+    <ClCompile Include="GUI\imgui\GUI_Base.cpp" />
+    <ClCompile Include="GUI\imgui\GUI_Inspector.cpp" />
+    <ClCompile Include="GUI\imgui\GUI_Themes.cpp" />
+    <ClCompile Include="GUI\imgui\GUI_Viewport.cpp" />
+    <ClCompile Include="Shader\ui_effect.hlsl" />
+    <ClCompile Include="Vendor\imgui\imgui.cpp" />
+    <ClCompile Include="Vendor\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Vendor\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Vendor\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Vendor\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Vendor\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Vendor\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common_include.h" />
     <ClInclude Include="common_pch.h" />
+    <ClInclude Include="Core\Graphics\ConstantBuffer\CConstantBuffer.h" />
+    <ClInclude Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.h" />
+    <ClInclude Include="Core\Graphics\ConstantBuffer\CViewBuffer.h" />
+    <ClInclude Include="Core\Graphics\ConstantBuffer\CWorldBuffer.h" />
+    <ClInclude Include="Core\Graphics\DirectMathHelper.h" />
+    <ClInclude Include="Core\Graphics\Font\XDWrite.h" />
+    <ClInclude Include="Core\Graphics\Font\XTKFont.h" />
+    <ClInclude Include="Core\Graphics\GraphicDevice.h" />
+    <ClInclude Include="Core\Graphics\graphics_common_include.h" />
+    <ClInclude Include="Core\Graphics\Layer\XLayerBase.h" />
+    <ClInclude Include="Core\Graphics\Mesh\XMesh.h" />
+    <ClInclude Include="Core\Graphics\Renderer.h" />
+    <ClInclude Include="Core\Graphics\Shader\InputLayouts.h" />
+    <ClInclude Include="Core\Graphics\Shader\MShaderManager.h" />
+    <ClInclude Include="Core\Graphics\Shader\XShader.h" />
+    <ClInclude Include="Core\Graphics\State\SamplerState.h" />
+    <ClInclude Include="Core\Graphics\Texture\MTextureManager.h" />
+    <ClInclude Include="Core\Graphics\Texture\XTexture2D.h" />
+    <ClInclude Include="Core\Graphics\Vertex\XTKPrimitiveBatch.h" />
+    <ClInclude Include="Core\Graphics\Vertex\XVertexBuffer.h" />
+    <ClInclude Include="Core\Graphics\Viewport\MViewportManager.h" />
+    <ClInclude Include="Core\Input\XController.h" />
+    <ClInclude Include="Core\Input\XKeyboardMouse.h" />
+    <ClInclude Include="Core\Interface\MManagerInterface.h" />
+    <ClInclude Include="Core\Interface\IRenderable.h" />
+    <ClInclude Include="Core\JCamera.h" />
     <ClInclude Include="Core\JObject.h" />
+    <ClInclude Include="Core\Manager\Manager_Base.h" />
+    <ClInclude Include="Core\Utils\FileIO\Serialization.h" />
+    <ClInclude Include="Core\Utils\HelperFunction.h" />
+    <ClInclude Include="Core\Utils\Logger.h" />
+    <ClInclude Include="Core\Utils\Math\Color.h" />
+    <ClInclude Include="Core\Utils\Math\FTransform.h" />
+    <ClInclude Include="Core\Utils\Math\MathFwd.h" />
+    <ClInclude Include="Core\Utils\Math\MathUtility.h" />
+    <ClInclude Include="Core\Utils\Math\Quaternion.h" />
+    <ClInclude Include="Core\Utils\Math\Vector.h" />
+    <ClInclude Include="Core\Utils\Math\Vector2D.h" />
+    <ClInclude Include="Core\Utils\Timer.h" />
+    <ClInclude Include="Core\Utils\Utils.h" />
+    <ClInclude Include="Core\Window\Application.h" />
+    <ClInclude Include="Core\Window\Window.h" />
     <ClInclude Include="Debug\Assert.h" />
-    <ClInclude Include="Graphics\ConstantBuffer\CConstantBuffer.h" />
-    <ClInclude Include="Graphics\ConstantBuffer\CProjectionBuffer.h" />
-    <ClInclude Include="Graphics\ConstantBuffer\CViewBuffer.h" />
-    <ClInclude Include="Graphics\ConstantBuffer\CWorldBuffer.h" />
-    <ClInclude Include="Graphics\DirectMathHelper.h" />
-    <ClInclude Include="Graphics\Font\XDWrite.h" />
-    <ClInclude Include="Graphics\GraphicDevice.h" />
-    <ClInclude Include="Graphics\graphics_common_include.h" />
-    <ClInclude Include="Graphics\Shader\InputLayouts.h" />
-    <ClInclude Include="Graphics\Shader\ShaderManager.h" />
-    <ClInclude Include="Graphics\Shader\XShader.h" />
-    <ClInclude Include="Graphics\State\SamplerState.h" />
-    <ClInclude Include="Graphics\Texture\XTexture2D.h" />
-    <ClInclude Include="Graphics\Vertex\XVertexBuffer.h" />
-    <ClInclude Include="GUI\Chatting\GUI_Chat.h" />
-    <ClInclude Include="Manager\Manager_Base.h" />
-    <ClInclude Include="Utils\HelperFunction.h" />
-    <ClInclude Include="Utils\Logger.h" />
-    <ClInclude Include="Utils\Math\Color.h" />
-    <ClInclude Include="Utils\Math\MathFwd.h" />
-    <ClInclude Include="Utils\Math\MathUtility.h" />
-    <ClInclude Include="Utils\Math\FTransform.h" />
-    <ClInclude Include="Utils\Math\Vector.h" />
-    <ClInclude Include="Utils\Math\Vector2D.h" />
-    <ClInclude Include="Utils\Timer.h" />
-    <ClInclude Include="Window\Application.h" />
-    <ClInclude Include="Window\Window.h" />
+    <ClInclude Include="enums.h" />
+    <ClInclude Include="GUI\MGUIManager.h" />
+    <ClInclude Include="GUI\imgui\GUI_AssetBrowser.h" />
+    <ClInclude Include="GUI\imgui\GUI_Base.h" />
+    <ClInclude Include="GUI\imgui\GUI_Inspector.h" />
+    <ClInclude Include="GUI\imgui\GUI_Themes.h" />
+    <ClInclude Include="GUI\imgui\GUI_Viewport.h" />
+    <ClInclude Include="Vendor\imgui\imconfig.h" />
+    <ClInclude Include="Vendor\imgui\imgui.h" />
+    <ClInclude Include="Vendor\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="Vendor\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="Vendor\imgui\imgui_internal.h" />
+    <ClInclude Include="Vendor\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Vendor\imgui\imstb_textedit.h" />
+    <ClInclude Include="Vendor\imgui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Core\Interface\ICoreInterface.h" />
     <Content Include="Shader\alphablend.hlsl" />
-    <Content Include="Utils\Math\Quaternion.h" />
+    <Content Include="Shader\ShaderNote.md" />
     <Content Include="vcpkg.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Game\Scene\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -154,5 +213,6 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
     <OutDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Output/</OutDir>
     <IntDir>../../bin/$(Configuration)\$(SolutionName)\$(ProjectName)\Intermediate/</IntDir>
+    <ExternalIncludePath>$(ExternalIncludePath);$(_ZVcpkgCurrentInstalledDir)include;Vendor/</ExternalIncludePath>
   </PropertyGroup>
 </Project>

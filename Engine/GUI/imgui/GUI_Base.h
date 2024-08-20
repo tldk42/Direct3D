@@ -6,7 +6,7 @@
 class GUI_Base : public ICoreInterface, public IRenderable
 {
 public:
-	explicit GUI_Base(const char* InTitle);
+	explicit GUI_Base(const std::string& InTitle);
 	~GUI_Base() override = default;
 
 public:
@@ -19,12 +19,12 @@ public:
 	void Render() override;
 	void PostRender() override;
 
-	ERenderingLayer GetLayerType() override;
+	ELayerType GetLayerType() override;
 
 	FORCEINLINE bool GetVisibility() const { return bVisible; }
 	FORCEINLINE void SetVisibility(bool bActiveVisible) { bVisible = bActiveVisible; }
 
 protected:
-	const char* mTitle;
+	std::string mTitle;
 	bool        bVisible;
 };

@@ -5,12 +5,12 @@
 class GUI_Viewport : public GUI_Base
 {
 public:
-	GUI_Viewport(const char* InTitle);
+	explicit GUI_Viewport(const std::string& InTitle);
 	~GUI_Viewport() override = default;
 
 public:
 	void Initialize() override;
-	void Render() override;
+	void Update(float DeltaTime) override;
 
 public:
 	[[nodiscard]] FORCEINLINE bool IsBIsFocused() const { return bIsFocused; }

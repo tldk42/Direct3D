@@ -1,10 +1,11 @@
 ﻿#include "common_pch.h"
 #include "GUI_AssetBrowser.h"
 
+#include "Core/Utils/Utils.h"
 #include "Core/Utils/Math/MathUtility.h"
 
 
-GUI_AssetBrowser::GUI_AssetBrowser(const char* InTitle)
+GUI_AssetBrowser::GUI_AssetBrowser(const std::string& InTitle)
 	: GUI_Base(InTitle),
 	  mIconHitSpacing(4),
 	  mZoomWheelAccum(0),
@@ -14,40 +15,38 @@ GUI_AssetBrowser::GUI_AssetBrowser(const char* InTitle)
 	  mIconSpacing(10),
 	  mLayoutColumnCount(0),
 	  mLayoutLineCount(0),
-	  mIconSize(32),
+	  mIconSize(64),
+	  mMultiSelectFlag(0),
 	  bOpen(false),
 	  bAllowBoxSelect(true),
 	  bAllowDragUnselected(false),
 	  bRequestDelete(false),
+	  bRequestRename(false),
 	  bShowTypeOverlay(true),
 	  bStretchSpacing(true),
-	  mCurrentDirectory(L"Game/"),
-	  mCachedDirectory(mCurrentDirectory) {}
+	  mCurrentDirectory(),
+	  mCachedDirectory(),
+	  g_IconList()
+{
+	mCurrentDirectory = fs::absolute(L"Game");
+}
+
 
 void GUI_AssetBrowser::Initialize()
 {
 	GUI_Base::Initialize();
 	g_IconList.CreateTextures();
 
-	AddItems(100);
+	SetMultiFlagOptions();
 }
 
 void GUI_AssetBrowser::Update(float_t DeltaTime)
-{}
-
-void GUI_AssetBrowser::Release()
 {
-	GUI_Base::Release();
-}
+	HandleFile();
 
+	SetWindowSize(10, 15);
 
-void GUI_AssetBrowser::Render()
-{
-	// HandleFile();
-
-	SetWindowSize(25, 15);
-
-	if (!ImGui::Begin(mTitle, &bOpen, ImGuiWindowFlags_MenuBar))
+	if (!ImGui::Begin(mTitle.c_str(), &bOpen, ImGuiWindowFlags_MenuBar))
 	{
 		ImGui::End();
 		return;
@@ -77,22 +76,32 @@ void GUI_AssetBrowser::Render()
 	}
 	ImGui::EndChild();
 
-	ImGui::Text("Selected: %d/%d items", mSelection.Size, mItems.size());
-	ImGui::End();
+	ImGui::Text("Selected: %d/%d items \t", mSelection.Size, mFiles.size());
+	ImGui::SameLine();
 
+	ImGui::Text("Current Path: %s", WString2String(mCurrentDirectory).c_str());
+	ImGui::End();
 }
+
+void GUI_AssetBrowser::Release()
+{
+	GUI_Base::Release();
+}
+
+void GUI_AssetBrowser::Render()
+{}
 
 void GUI_AssetBrowser::AddItems(int32_t AddNum)
 {
 	int8_t indexID = 0;
 
-	mItems.reserve(mItems.size() + AddNum);
+	mFiles.reserve(mFiles.size() + AddNum);
 
-	for (int32_t i = 0; i < AddNum; ++i, indexID++)
-	{
-		mItems.push_back(JAssetFileBrowser(std::to_string(indexID),
-										   (indexID % 20) < 15 ? 0 : (indexID % 20) < 18 ? 1 : 2));
-	}
+	// for (int32_t i = 0; i < AddNum; ++i, indexID++)
+	// {
+	// 	mFiles.push_back(JAssetSerialize(std::to_string(indexID),
+	// 									   (indexID % 20) < 15 ? 0 : (indexID % 20) < 18 ? 1 : 2));
+	// }
 }
 
 void GUI_AssetBrowser::SetWindowSize(int32_t InWidth, int32_t InHeight) const
@@ -108,67 +117,89 @@ void GUI_AssetBrowser::SetWindowSize(int32_t InWidth, int32_t InHeight) const
 
 void GUI_AssetBrowser::UpdateMultiSelection(ImVec2 start_pos)
 {
-	ImGuiMultiSelectFlags msFlag;
-	SetMultiFlagOptions(msFlag);
-
 	ImGuiMultiSelectIO* msIO =
 	ImGui::BeginMultiSelect(
-							msFlag,
+							mMultiSelectFlag,
 							mSelection.Size, // [option] esc clear되는 flag같은 걸 넣었을때 이 값이 0이라면 비용을 아낄 수 있다
-							mItems.size() // [option] 아직 잘 모르겠다...
+							mFiles.size() // [option] 아직 잘 모르겠다...
 						   );
 
 	// Use custom selection adapter: store ID in selection (recommended)
 	mSelection.UserData                = this;
 	mSelection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self_, int idx){
 		GUI_AssetBrowser* self = static_cast<GUI_AssetBrowser*>(self_->UserData);
-		return static_cast<ImGuiID>(self->mItems[idx].GetID());
+		return self->mFiles[idx].ID;
 	};
 	mSelection.ApplyRequests(msIO);
 
 	const bool bWantDelete =
 	(ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat) && (mSelection.Size > 0)) || bRequestDelete;
+	const bool bWantRename =
+	(ImGui::Shortcut(ImGuiKey_F2, ImGuiInputFlags_Repeat) && mSelection.Size > 0) || bRequestRename;
 
-	const int focusItemIndexToDelete =
-	bWantDelete ? mSelection.ApplyDeletionPreLoop(msIO, mItems.size()) : -1;
+	const int currentItemIndexToFocus =
+	bWantDelete || bWantRename ? mSelection.ApplyDeletionPreLoop(msIO, mFiles.size()) : -1;
 
-	UpdateClipperAndItemSpacing(msIO, start_pos, focusItemIndexToDelete);
+	UpdateClipperAndItemSpacing(msIO, start_pos, currentItemIndexToFocus);
 
-	// Context menu
+	// Context menu (오른쪽 클릭)
 	if (ImGui::BeginPopupContextWindow())
 	{
-		ImGui::Text("mSelection: %d items", mSelection.Size);
-		ImGui::Separator();
-		if (ImGui::MenuItem("Delete", "Del", false, mSelection.Size > 0))
-			bRequestDelete = true;
+		if (mSelection.Size > 0)
+		{
+			ImGui::Text("mSelection: %d items", mSelection.Size);
+			ImGui::Separator();
+			if (ImGui::MenuItem("Delete", "Del", false, mSelection.Size > 0))
+			{
+				bRequestDelete = true;
+			}
+			if (ImGui::MenuItem("Rename", "F2", false, mSelection.Size == 1))
+			{
+				bRequestRename = true;
+			}
+		}
+
+		else
+		{
+			if (ImGui::MenuItem("New Folder"))
+			{
+				// 코드를 추가하여 새 폴더 생성을 처리합니다.
+
+			}
+			if (ImGui::MenuItem("New File"))
+			{
+				// 코드를 추가하여 새 파일 생성을 처리합니다.
+			}
+		}
 		ImGui::EndPopup();
+
 	}
 
 	msIO = ImGui::EndMultiSelect();
 	mSelection.ApplyRequests(msIO);
 	if (bWantDelete)
-		mSelection.ApplyDeletionPostLoop(msIO, mItems, focusItemIndexToDelete);
+		mSelection.ApplyDeletionPostLoop(msIO, mFiles, currentItemIndexToFocus);
 }
 
-void GUI_AssetBrowser::SetMultiFlagOptions(ImGuiMultiSelectFlags& msFlag) const
+void GUI_AssetBrowser::SetMultiFlagOptions()
 {
 	// Flag에 대한 부분은 imgui doc 참고(wip...)
 	// Multi-select	Flag										ESC		 |  empty location 누를시에 Clear
-	msFlag = ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_ClearOnClickVoid;
+	mMultiSelectFlag = ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_ClearOnClickVoid;
 
 	// - Enable box-select (in 2D mode, so that changing box-select rectangle X1/X2 boundaries will affect clipped items)
 	if (bAllowBoxSelect)
-		msFlag |= ImGuiMultiSelectFlags_BoxSelect1d;
+		mMultiSelectFlag |= ImGuiMultiSelectFlags_BoxSelect1d;
 
 	// - This feature allows dragging an unselected item without selecting it (rarely used)
 	if (bAllowDragUnselected)
-		msFlag |= ImGuiMultiSelectFlags_SelectOnClickRelease;
+		mMultiSelectFlag |= ImGuiMultiSelectFlags_SelectOnClickRelease;
 
 	// - Enable keyboard wrapping on X axis
 	// (FIXME-MULTISELECT: We haven't designed/exposed a general nav wrapping api yet, so this flag is provided as a courtesy to avoid doing:
 	//    ImGui::NavMoveRequestTryWrapping(ImGui::GetCurrentWindow(), ImGuiNavMoveFlags_WrapX);
 	// When we finish implementing a more general API for this, we will obsolete this flag in favor of the new system)
-	msFlag |= ImGuiMultiSelectFlags_NavWrapX;
+	mMultiSelectFlag |= ImGuiMultiSelectFlags_NavWrapX;
 }
 
 void GUI_AssetBrowser::UpdateLayoutSizes(float InAvailWidth)
@@ -181,7 +212,7 @@ void GUI_AssetBrowser::UpdateLayoutSizes(float InAvailWidth)
 
 	mLayoutItemSize    = ImVec2(mIconSize, mIconSize);
 	mLayoutColumnCount = max((int)(InAvailWidth / (mLayoutItemSize.x + mLayoutItemSpacing)), 1);
-	mLayoutLineCount   = (mItems.size() + mLayoutColumnCount - 1) / mLayoutColumnCount;
+	mLayoutLineCount   = (mFiles.size() + mLayoutColumnCount - 1) / mLayoutColumnCount;
 
 	if (bStretchSpacing && mLayoutColumnCount > 1)
 		mLayoutItemSpacing = floorf(InAvailWidth - mLayoutItemSize.x * mLayoutColumnCount) / mLayoutColumnCount;
@@ -191,7 +222,7 @@ void GUI_AssetBrowser::UpdateLayoutSizes(float InAvailWidth)
 	mLayoutOuterPadding      = floorf(mLayoutItemSpacing * 0.5f);
 }
 
-void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImVec2 startPos, int focusItemIndexToDelete)
+void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImVec2 startPos, int currentItemIndexToFocus)
 {
 	bRequestDelete = false;
 
@@ -202,12 +233,6 @@ void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImV
 	// - The vertical spacing would be measured by Clipper to calculate line height if we didn't provide it explicitly (here we do).
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(mLayoutSelectableSpacing, mLayoutSelectableSpacing));
 
-	// Rendering parameters
-	const ImU32  icon_type_overlay_colors[3] = {0, IM_COL32(200, 70, 70, 255), IM_COL32(70, 170, 70, 255)};
-	const ImU32  icon_bg_color               = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
-	const ImVec2 icon_type_overlay_size      = ImVec2(4.0f, 4.0f);
-	const bool   display_label               = (mLayoutItemSize.x >= ImGui::CalcTextSize("999").x);
-
 	const int columnCount = mLayoutColumnCount;
 
 	// 대량의 항목을 렌더할 때 보이지 않는 부분들은 자동으로 제외시키는 ClipperList
@@ -215,8 +240,8 @@ void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImV
 
 	clipper.Begin(mLayoutLineCount, mLayoutItemStep.y);
 
-	if (focusItemIndexToDelete != -1)
-		clipper.IncludeItemByIndex(focusItemIndexToDelete / columnCount); // Ensure focused item line is not clipped.
+	if (currentItemIndexToFocus != -1)
+		clipper.IncludeItemByIndex(currentItemIndexToFocus / columnCount); // Ensure focused item line is not clipped.
 	if (msIO->RangeSrcItem != -1)
 		clipper.
 		IncludeItemByIndex(static_cast<int>(msIO->RangeSrcItem) /
@@ -230,16 +255,15 @@ void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImV
 			// 라인 시작 인덱스 (한줄에 10개씩이면 0, 11, 21 ...)
 			const int itemLineIndex = lineIndex * columnCount;
 			// 라인 끝 인덱스 (10, 20, 30 ...)
-			const int itemLineIndexEnd = min((lineIndex + 1) * columnCount, mItems.Size);
+			const int itemLineIndexEnd = min((lineIndex + 1) * columnCount, mFiles.size());
 
 			// 한 줄씩 렌더링 시작
 			for (int itemIndex = itemLineIndex; itemIndex < itemLineIndexEnd; ++itemIndex)
 			{
-				JAssetFileBrowser* itemData = &mItems[itemIndex];
+				auto* itemData = &mFiles[itemIndex];
 
-#pragma region Handle Each Item
 				// 특정 ID에 대한 아이템 처리 시작
-				ImGui::PushID(itemData->GetID());
+				ImGui::PushID(itemData->FileName.c_str());
 
 				// Set Position item
 				ImVec2 pos = ImVec2(startPos.x + (itemIndex % columnCount) * mLayoutItemStep.x,
@@ -247,10 +271,22 @@ void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImV
 				ImGui::SetCursorScreenPos(pos);
 
 				// Visualize 업데이트
+
 				ImGui::SetNextItemSelectionUserData(itemIndex);
-				bool bIsItemSelected = mSelection.Contains((ImGuiID)itemData->GetID());
-				bool bItemIsVisible  = ImGui::IsRectVisible(mLayoutItemSize);
+				bool bIsItemSelected = mSelection.Contains(itemData->ID);
 				ImGui::Selectable("", bIsItemSelected, ImGuiSelectableFlags_None, mLayoutItemSize);
+
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+				{
+					switch (itemData->FileType)
+					{
+					case EFileType::Folder: // 폴더 업데이트
+						mCurrentDirectory = itemData->FilePath;
+						break;
+					case EFileType::Asset: // 에셋 창 열기(너무 복잡, 그냥 DragDrop만 가능하도록 수정)
+						break;
+					}
+				}
 
 				// Update our selection state immediately (without waiting for EndMultiSelect() requests)
 				// because we use this to alter the color of our text/icon.
@@ -258,72 +294,16 @@ void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImV
 					bIsItemSelected = !bIsItemSelected;
 
 				// Focus (for after deletion)
-				if (focusItemIndexToDelete == itemIndex)
+				if (currentItemIndexToFocus == itemIndex)
 					ImGui::SetKeyboardFocusHere(-1);
 
 				// Drag and drop
-				if (ImGui::BeginDragDropSource())
-				{
-					// Create payload with full selection OR single unselected item.
-					// (the later is only possible when using ImGuiMultiSelectFlags_SelectOnClickRelease)
-					if (ImGui::GetDragDropPayload() == NULL)
-					{
-						ImVector<ImGuiID> payload_items;
-						void*             it = NULL;
-						ImGuiID           id = 0;
-						if (!bIsItemSelected)
-							payload_items.push_back(itemData->GetID());
-						else
-							while (mSelection.GetNextSelectedItem(&it, &id))
-								payload_items.push_back(id);
-						ImGui::SetDragDropPayload("ASSETS_BROWSER_ITEMS", payload_items.Data,
-												  (size_t)payload_items.size_in_bytes());
-					}
+				UpdateDragDrop(bIsItemSelected, itemData->ID);
 
-					// Display payload content in tooltip, by extracting it from the payload data
-					// (we could read from selection, but it is more correct and reusable to read from payload)
-					const ImGuiPayload* payload       = ImGui::GetDragDropPayload();
-					const int           payload_count = (int)payload->DataSize / (int)sizeof(ImGuiID);
-					ImGui::Text("%d assets", payload_count);
-
-					ImGui::EndDragDropSource();
-				}
-
-				// Render icon (a real app would likely display an image/thumbnail here)
-				// Because we use ImGuiMultiSelectFlags_BoxSelect2d, clipping vertical may occasionally be larger, so we coarse-clip our rendering as well.
-				if (bItemIsVisible)
-				{
-					ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-					ImVec2 box_min(pos.x - 1, pos.y - 1);
-					ImVec2 box_max(box_min.x + mLayoutItemSize.x + 2, box_min.y + mLayoutItemSize.y + 2); // Dubious
-					draw_list->AddRectFilled(box_min, box_max, icon_bg_color); // Background color
-
-					if (itemData->GetType() != 0)
-					{
-						draw_list->AddImage(g_IconList.FolderIcon->GetSRV(), box_min + ImVec2(2, 2),
-											box_max - ImVec2(2, 2));
-					}
-
-					if (bShowTypeOverlay /*&& item_data->GetType() != 0*/)
-					{
-						ImU32 type_col = icon_type_overlay_colors[itemData->GetType() %
-							IM_ARRAYSIZE(icon_type_overlay_colors)];
-						draw_list->AddRectFilled(ImVec2(box_max.x - 2 - icon_type_overlay_size.x, box_min.y + 2),
-												 ImVec2(box_max.x - 2, box_min.y + 2 + icon_type_overlay_size.y),
-												 type_col);
-					}
-					if (display_label)
-					{
-						ImU32 label_col = ImGui::GetColorU32(bIsItemSelected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
-						draw_list->AddText(ImVec2(box_min.x, box_max.y - ImGui::GetFontSize()),
-										   label_col,
-										   itemData->GetIDText().data());
-					}
-				}
+				// Icon
+				UpdateIcon(pos, bIsItemSelected, itemData);
 
 				ImGui::PopID();
-#pragma endregion
 			}
 		}
 	}
@@ -331,15 +311,104 @@ void GUI_AssetBrowser::UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImV
 	ImGui::PopStyleVar(); // ImGuiStyleVar_ItemSpacing
 }
 
+void GUI_AssetBrowser::UpdateDragDrop(bool bIsItemSelected, ImGuiID payLoadID)
+{
+	if (ImGui::BeginDragDropSource())
+	{
+		// Create payload with full selection OR single unselected item.
+		// (the later is only possible when using ImGuiMultiSelectFlags_SelectOnClickRelease)
+		if (ImGui::GetDragDropPayload() == NULL)
+		{
+			ImVector<ImGuiID> payload_items;
+			void*             it = NULL;
+			ImGuiID           id = 0;
+			if (!bIsItemSelected)
+				payload_items.push_back(payLoadID);
+			else
+				while (mSelection.GetNextSelectedItem(&it, &id))
+					payload_items.push_back(id);
+			ImGui::SetDragDropPayload("ASSETS_BROWSER_ITEMS", payload_items.Data,
+									  (size_t)payload_items.size_in_bytes());
+		}
+
+		// Display payload content in tooltip, by extracting it from the payload data
+		// (we could read from selection, but it is more correct and reusable to read from payload)
+		const ImGuiPayload* payload       = ImGui::GetDragDropPayload();
+		const int           payload_count = (int)payload->DataSize / (int)sizeof(ImGuiID);
+		ImGui::Text("%d assets", payload_count);
+
+		ImGui::EndDragDropSource();
+	}
+}
+
+void GUI_AssetBrowser::UpdateIcon(ImVec2 pos, int bIsItemSelected, FBasicFilePreview* itemData) const
+{
+	// Rendering parameters
+	bool bItemIsVisible = ImGui::IsRectVisible(mLayoutItemSize);
+
+	const ImU32 iconBgColor   = ImGui::GetColorU32(ImGuiCol_MenuBarBg);
+	const bool  bDisplayLabel = (mLayoutItemSize.x >= ImGui::CalcTextSize("999").x);
+
+	// Render icon (a real app would likely display an image/thumbnail here)
+	// Because we use ImGuiMultiSelectFlags_BoxSelect2d, clipping vertical may occasionally be larger, so we coarse-clip our rendering as well.
+	if (bItemIsVisible)
+	{
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+		ImVec2 box_min(pos.x - 1, pos.y - 1);
+		ImVec2 box_max(box_min.x + mLayoutItemSize.x + 2, box_min.y + mLayoutItemSize.y + 2); // Dubious
+		draw_list->AddRectFilled(box_min, box_max, iconBgColor); // Background color
+
+		// if (itemData->GetType() != 0)
+		{
+			draw_list->AddImage(
+								itemData->FileType == EFileType::Folder
+									? g_IconList.FolderIcon->GetSRV()
+									: g_IconList.FileIcon->GetSRV(), box_min + ImVec2(2, 2),
+								box_max - ImVec2(2, 2));
+		}
+
+		// if (bShowTypeOverlay /*&& item_data->GetType() != 0*/)
+		// {
+		// 	ImU32 type_col = icon_type_overlay_colors[itemData->GetType() %
+		// 		IM_ARRAYSIZE(icon_type_overlay_colors)];
+		// 	draw_list->AddRectFilled(ImVec2(box_max.x - 2 - icon_type_overlay_size.x, box_min.y + 2),
+		// 							 ImVec2(box_max.x - 2, box_min.y + 2 + icon_type_overlay_size.y),
+		// 							 type_col);
+		// }
+		if (bDisplayLabel)
+		{
+			if (bRequestRename && bIsItemSelected)
+			{
+				char inputText[256];
+				ImGui::InputText("", inputText, 256);
+			}
+			else
+			{
+				ImU32 label_col = ImGui::GetColorU32(bIsItemSelected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
+				draw_list->AddText(ImVec2(box_min.x, box_max.y - ImGui::GetFontSize()),
+								   label_col,
+								   WString2String(itemData->FileName).c_str());
+			}
+
+		}
+	}
+
+}
+
 void GUI_AssetBrowser::UpdateZoom(ImVec2 startPos, float availableWidth)
 {
-	ImGuiIO& io = ImGui::GetIO();
-
-	// Zooming with CTRL+Wheel
+	// 렌더링 중? Skip
 	if (ImGui::IsWindowAppearing())
 		mZoomWheelAccum = 0.0f;
-	if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f && ImGui::IsKeyDown(ImGuiMod_Ctrl) &&
-		ImGui::IsAnyItemActive() == false)
+
+	ImGuiIO& io = ImGui::GetIO();
+	// Zooming with CTRL+Wheel
+	if (ImGui::IsWindowHovered() &&
+		io.MouseWheel != 0.0f &&
+		ImGui::IsKeyDown(ImGuiMod_Ctrl) &&
+		!ImGui::IsAnyItemActive() // 여기서 Item은 사용자입력(Input)에 반응하는 Item
+	)
 	{
 		mZoomWheelAccum += io.MouseWheel;
 		if (fabsf(mZoomWheelAccum) >= 1.0f)
@@ -372,32 +441,38 @@ void GUI_AssetBrowser::UpdateZoom(ImVec2 startPos, float availableWidth)
 
 void GUI_AssetBrowser::HandleFile()
 {
-	mFolders.clear();
+	if (mCachedDirectory == mCurrentDirectory)
+		return;
+
+	mFiles.clear();
 
 	if (!fs::exists(mCurrentDirectory))
 	{
 		LOG_CORE_ERROR("Asset Browser : Invalid Directory");
 		return;
 	}
-
-	mCachedDirectory = mCurrentDirectory;
-	auto currentPath = fs::path(mCurrentDirectory);
+	const fs::path currentPath = fs::path(mCurrentDirectory);
 
 	if (currentPath.has_parent_path())
 	{
-		mFolders.emplace_back(currentPath.parent_path());
+		const fs::path parentPath = fs::absolute(mCurrentDirectory).parent_path();
+		mFiles.emplace_back(StringHash(parentPath.c_str()), L"..", parentPath, EFileType::Folder);
 	}
+
+	mCachedDirectory = mCurrentDirectory;
 
 	for (auto& dir : fs::directory_iterator(currentPath))
 	{
+		auto path = dir.path();
+
 		if (fs::is_directory(dir))
 		{
-			mFolders.emplace_back(dir.path());
+			mFiles.emplace_back(StringHash(path.c_str()), path.stem(), path, EFileType::Folder);
 		}
-		// else if (fs::is_regular_file(dir))
-		// {
-		// 	mItems.emplace_back(dir);
-		// }
+		else if (!path.extension().empty() && path.extension() == ".jasset")
+		{
+			mFiles.emplace_back(StringHash(path.c_str()), path.stem(), path, EFileType::Asset);
+		}
 	}
 
 

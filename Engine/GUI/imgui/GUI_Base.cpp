@@ -1,7 +1,9 @@
 ﻿#include "common_pch.h"
 #include "GUI_Base.h"
 
-GUI_Base::GUI_Base(const char* InTitle)
+#include "common_include.h"
+
+GUI_Base::GUI_Base(const std::string& InTitle)
 	: mTitle(InTitle),
 	  bVisible(true)
 {}
@@ -20,9 +22,9 @@ void GUI_Base::Render()
 
 void GUI_Base::PostRender() {}
 
-ERenderingLayer GUI_Base::GetLayerType()
+ELayerType GUI_Base::GetLayerType()
 {
-	return ERenderingLayer::GUI;
+	return ELayerType::GUI;
 }
 
 void GUI_Base::Release()

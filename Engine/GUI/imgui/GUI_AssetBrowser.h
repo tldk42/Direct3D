@@ -1,9 +1,14 @@
 ﻿#pragma once
 #include "GUI_Base.h"
-#include "Core/JAssetFileBrowser.h"
 #include "Core/Graphics/Texture/MTextureManager.h"
 
 namespace fs = std::filesystem;
+
+enum class EFileType : uint8_t
+{
+	Folder = 0,
+	Asset  = 1 << 0
+};
 
 /**
 * \struct AssetSelectionWithDeletion
@@ -48,15 +53,15 @@ struct AssetSelectionWithDeletion : ImGuiSelectionBasicStorage
 	{
 		// Rewrite item list (delete items) + convert old selection index (before deletion) to new selection index (after selection).
 		// If NavId was not part of selection, we will stay on same item.
-		ImVector<ItemType> new_items;
-		new_items.reserve(Items.Size - Size);
+		std::vector<ItemType> new_items;
+		new_items.reserve(Items.size() - Size);
 		int item_next_idx_to_select = -1;
-		for (int idx = 0; idx < Items.Size; idx++)
+		for (int idx = 0; idx < Items.size(); idx++)
 		{
 			if (!Contains(GetStorageIdFromIndex(idx)))
 				new_items.push_back(Items[idx]);
 			if (CurrentItemIndexToSelect == idx)
-				item_next_idx_to_select = new_items.Size - 1;
+				item_next_idx_to_select = new_items.size() - 1;
 		}
 		Items.swap(new_items);
 
@@ -72,8 +77,8 @@ struct AssetBrowserIconList
 
 	void CreateTextures()
 	{
-		FolderIcon = Manager_Texture.CreateOrLoad(L"rsc/Icons/Folders/Folder_Base_256x.png");
-		FileIcon   = Manager_Texture.CreateOrLoad(L"rsc/Icons/Folders/FolderDev_Base_256x.png");
+		FolderIcon = Manager_Texture.CreateOrLoad(L"rsc/Icons/Folders/Folder_Base_64x.png");
+		FileIcon   = Manager_Texture.CreateOrLoad(L"rsc/Icons/AssetIcons/Actor_64x.png");
 	}
 
 public:
@@ -81,10 +86,19 @@ public:
 	XTexture2D* FileIcon;
 };
 
+struct FBasicFilePreview
+{
+	uint32_t  ID; // Hash값 (path로 지정)
+	JWText    FileName;
+	fs::path  FilePath;
+	EFileType FileType;
+};
+
+
 class GUI_AssetBrowser : public GUI_Base
 {
 public:
-	GUI_AssetBrowser(const char* InTitle);
+	GUI_AssetBrowser(const std::string& InTitle);
 	~GUI_AssetBrowser() override = default;
 
 public:
@@ -102,9 +116,11 @@ public:
 
 private:
 	void SetWindowSize(int32_t InWidth, int32_t InHeight) const;
-	void SetMultiFlagOptions(ImGuiMultiSelectFlags& msFlag) const;
+	void SetMultiFlagOptions();
 	void UpdateLayoutSizes(float InAvailWidth);
-	void UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImVec2 startPos, int focusItemIndexToDelete);
+	void UpdateClipperAndItemSpacing(ImGuiMultiSelectIO* msIO, ImVec2 startPos, int currentItemIndexToFocus);
+	void UpdateDragDrop(bool bIsItemSelected, ImGuiID payLoadID);
+	void UpdateIcon(ImVec2 pos, int bIsItemSelected, FBasicFilePreview* itemData) const;
 	void UpdateZoom(ImVec2 startPos, float availableWidth);
 
 	void HandleFile();
@@ -125,22 +141,25 @@ private:
 	// ------------ layout --------------
 
 	// ----------- settings -------------
-	int32_t mIconSize;
-	bool    bOpen;
-	bool    bAllowBoxSelect;
-	bool    bAllowDragUnselected;
-	bool    bRequestDelete;
-	bool    bShowTypeOverlay;
-	bool    bStretchSpacing;
+	int32_t               mIconSize;
+	ImGuiMultiSelectFlags mMultiSelectFlag;
+	bool                  bOpen;
+	bool                  bAllowBoxSelect;
+	bool                  bAllowDragUnselected;
+	bool                  bRequestDelete;
+	bool                  bRequestRename;
+	bool                  bShowTypeOverlay;
+	bool                  bStretchSpacing;
 	// ----------- settings -------------
 
 	// ------------- data ---------------
 	AssetSelectionWithDeletion     mSelection;
-	std::vector<JWText>            mFolders;
-	std::vector<JAssetFileBrowser> mItems;
+	std::vector<FBasicFilePreview> mFiles;
 	JWText                         mCurrentDirectory; // 현재 폴더 경로
 	JWText                         mCachedDirectory;  // 이전 폴더 경로
 	// ------------- data ---------------
+
+	JWText mTempRenameText;
 
 	AssetBrowserIconList g_IconList;
 };

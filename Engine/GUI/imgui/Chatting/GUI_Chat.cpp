@@ -22,7 +22,7 @@ void GUI_Chat::Initialize()
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplWin32_Init(Window::GetWindow()->GetWindowHandle());
-	ImGui_ImplDX11_Init(G_Context.GetDevice(), G_Context.GetDeviceContext());
+	ImGui_ImplDX11_Init(G_Context.GetDevice(), G_Context.GetImmediateDeviceContext());
 }
 
 void GUI_Chat::Update(float DeltaTime)

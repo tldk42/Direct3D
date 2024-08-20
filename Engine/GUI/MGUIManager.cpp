@@ -1,21 +1,27 @@
 ﻿#include "common_pch.h"
-#include "GUIManager.h"
+#include "MGUIManager.h"
+
+#include <ranges>
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_win32.h>
 #include <imgui/imgui_impl_dx11.h>
 
 #include "Core/Graphics/GraphicDevice.h"
+#include "Core/Interface/MManagerInterface.h"
 #include "imgui/GUI_Inspector.h"
 #include "imgui/GUI_Themes.h"
 #include "imgui/GUI_Viewport.h"
-#include "Core/Utils/Utils.h"
 #include "Core/Window/Window.h"
 #include "imgui/GUI_AssetBrowser.h"
 
-GUIManager::GUIManager()  = default;
-GUIManager::~GUIManager() = default;
+constexpr char Name_Viewport[]     = "Editor Viewport";
+constexpr char Name_Inspector[]    = "Editor Inspector";
+constexpr char Name_AssetBrowser[] = "Asset Browser";
 
-void GUIManager::Initialize()
+MGUIManager::MGUIManager()  = default;
+MGUIManager::~MGUIManager() = default;
+
+void MGUIManager::Initialize()
 {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -41,32 +47,26 @@ void GUIManager::Initialize()
 	ImGui_ImplDX11_Init(G_Context.GetDevice(), G_Context.GetImmediateDeviceContext());
 
 	InitializeStaticGUI();
+	ImGui::GetIO().FontGlobalScale = 1.5f; // 기본 글자 크기보다 1.5배로 확대
+
 }
 
-void GUIManager::InitializeStaticGUI()
+void MGUIManager::InitializeStaticGUI()
 {
-	// 메모리 예약
-	mStaticGUIs.reserve(EnumAsByte(EGUIType::Max));
+	CreateOrLoad<GUI_Viewport>(Name_Viewport)->Initialize();
+	CreateOrLoad<GUI_Inspector>(Name_Inspector)->Initialize();
+	CreateOrLoad<GUI_AssetBrowser>(Name_AssetBrowser)->Initialize();
+}
 
-	mStaticGUIs.emplace_back(std::make_unique<GUI_Viewport>("Editor Viewport")); // Editor Viewport
-	mStaticGUIs.emplace_back(std::make_unique<GUI_Inspector>("Editor Inspector")); // Editor Inspector
-	mStaticGUIs.emplace_back(std::make_unique<GUI_AssetBrowser>("Asset Browser")); // Editor Asset Browser
-
-	for (GUI_BaseUPtr& gui : mStaticGUIs)
+void MGUIManager::UpdateStaticGUI(float DeltaTime)
+{
+	for (GUI_BaseUPtr& gui : mManagedList | std::ranges::views::values)
 	{
-		gui->Initialize();
+		gui->Update(DeltaTime);
 	}
 }
 
-void GUIManager::UpdateStaticGUI()
-{
-	for (GUI_BaseUPtr& gui : mStaticGUIs)
-	{
-		gui->Render();
-	}
-}
-
-void GUIManager::Update(float_t DeltaTime)
+void MGUIManager::Update(float_t DeltaTime)
 {
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -74,22 +74,22 @@ void GUIManager::Update(float_t DeltaTime)
 
 	ImGui::DockSpaceOverViewport();
 
-	UpdateStaticGUI();
+	UpdateStaticGUI(DeltaTime);
 }
 
-void GUIManager::Release()
+void MGUIManager::Release()
 {
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 }
 
-void GUIManager::Render()
+void MGUIManager::Render()
 {
 	ImGui::Render(); // ImGui 렌더링 명령 생성
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // 생성된 명령(GetDrawData)을 GPU에 전달
 
-	// Update and Render additional Platform Windows
+	// Update and Present additional Platform Windows
 	ImGuiIO& io = ImGui::GetIO();
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
@@ -98,11 +98,18 @@ void GUIManager::Render()
 	}
 }
 
-void GUIManager::AddGUI(EGUIType InType)
+void MGUIManager::AddGUI(EGUIType InType)
 {}
 
-void GUIManager::HideGUI(EGUIType InType)
+void MGUIManager::HideGUI(EGUIType InType)
 {}
 
-void GUIManager::DeleteGUI(EGUIType InType)
+void MGUIManager::DeleteGUI(EGUIType InType)
 {}
+
+void MGUIManager::ScaleAllSize(float InScale)
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.ScaleAllSizes(InScale);
+
+}
