@@ -8,15 +8,17 @@ XLayerBase::XLayerBase(ELayerType LayerType)
 
 XLayerBase::~XLayerBase() = default;
 
-void XLayerBase::Render()
+void XLayerBase::Render() const
 {
-	for (auto& object : mRenderObjects)
+	const int32_t objNum = mRenderObjects.size();
+
+	for (int32_t i = 0; i < objNum; ++i)
 	{
-		object->PreRender();
+		mRenderObjects[i]->PreRender();
 
-		object->Render();
+		mRenderObjects[i]->Render();
 
-		object->PostRender();
+		mRenderObjects[i]->PostRender();
 	}
 }
 

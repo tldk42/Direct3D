@@ -10,7 +10,7 @@ public:
 	~XLayerBase();
 
 public:
-	void Render();
+	void Render() const;
 
 	[[nodiscard]] FORCEINLINE ELayerType GetLayerType() const { return mLayerType; }
 
@@ -28,16 +28,6 @@ protected:
 class MLayerManager : public TSingleton<MLayerManager>
 {
 public:
-	void CreateLayers()
-	{
-		mLayers.reserve(static_cast<uint32_t>(ELayerType::End));
-
-		for (int32_t i = 0; i < static_cast<int32_t>(ELayerType::End); ++i)
-		{
-			mLayers.push_back(std::make_unique<XLayerBase>(static_cast<ELayerType>(i)));
-		}
-	}
-
 	void Render()
 	{
 		for (int32_t i = 0; i < static_cast<int32_t>(ELayerType::End); ++i)
@@ -53,6 +43,17 @@ public:
 		if (mLayers.size() >= index)
 		{
 			mLayers[index]->AddLayerObject(InRenderable);
+		}
+	}
+
+private:
+	void CreateLayers()
+	{
+		mLayers.reserve(static_cast<uint32_t>(ELayerType::End));
+
+		for (int32_t i = 0; i < static_cast<int32_t>(ELayerType::End); ++i)
+		{
+			mLayers.push_back(std::make_unique<XLayerBase>(static_cast<ELayerType>(i)));
 		}
 	}
 

@@ -17,7 +17,7 @@ void MManagerInterface::Initialize()
 	GUIManager.Initialize();
 
 	// 에디터 뷰포트 창 생성
-	ViewportManager.CreateOrLoad("Editor Viewport", 1920, 1080);
+	ViewportManager.CreateOrLoad(Name_Editor_Viewport, 1920, 1080);
 
 	G_DebugBatch.Initialize();		 // Primitive Batch
 }
@@ -50,6 +50,7 @@ void MManagerInterface::Render()
 
 	G_DebugBatch.PostRender();
 
+	LayerManager.Render();
 }
 
 void MManagerInterface::Release()
