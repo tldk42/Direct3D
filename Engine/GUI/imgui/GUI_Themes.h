@@ -15,6 +15,8 @@ Because of this, we reference extra colors in spectrum from
 imgui.cpp and imgui_widgets.cpp directly, and to make that work, 
 we need to have them defined at here at compile time. 
 */
+// SPECTRUM_USE_LIGHT_THEME (light 버전)
+#define SPECTRUM_USE_DARK_THEME
 
 /// Pick one, or have one defined already.
 #if !defined(SPECTRUM_USE_LIGHT_THEME) && !defined(SPECTRUM_USE_DARK_THEME)

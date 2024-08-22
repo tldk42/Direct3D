@@ -16,6 +16,9 @@ using UPtr = std::unique_ptr<T>;
 template <typename T>
 using Ptr = std::shared_ptr<T>;
 
+#define MakeUPtr std::make_unique
+#define MakePtr std::make_shared
+
 inline JWText String2WString(const JText& InString)
 {
 	USES_CONVERSION;
