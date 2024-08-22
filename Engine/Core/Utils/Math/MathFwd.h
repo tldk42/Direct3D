@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Math
+namespace JMath
 {
 	template <typename T>
 	struct TVector;
@@ -16,5 +16,5 @@ namespace Math
 
 }
 
-using FVector   = Math::TVector<float>;
-using FVector2D = Math::TVector2<float>;		
+using FVector   = JMath::TVector<float>;
+using FVector2D = JMath::TVector2<float>;		

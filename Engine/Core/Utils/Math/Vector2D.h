@@ -2,7 +2,7 @@
 
 #include "MathUtility.h"
 
-namespace Math
+namespace JMath
 {
 	template <typename T>
 	struct TVector2
@@ -33,9 +33,9 @@ namespace Math
 		static inline TVector2 UnitY() { return TVector2(0, 1); }
 
 	public:
-		TVector2() = default;
-		TVector2(T InX, T InY);
-		explicit TVector2(T InF);
+		TVector2() noexcept = default;
+		constexpr          TVector2(T InX, T InY);
+		constexpr explicit TVector2(T InF);
 		TVector2(POINT InPoint);
 		// explicit TVector2(const TVector<T>& V);
 
@@ -97,12 +97,12 @@ namespace Math
 	};
 
 	template <typename T>
-	TVector2<T>::TVector2(T InX, T InY)
+	constexpr TVector2<T>::TVector2(T InX, T InY)
 		: X(InX),
 		  Y(InY) {}
 
 	template <typename T>
-	TVector2<T>::TVector2(T InF)
+	constexpr TVector2<T>::TVector2(T InF)
 		: X(InF),
 		  Y(InF) {}
 
@@ -380,7 +380,6 @@ namespace Math
 	template <typename T>
 	bool TVector2<T>::IsNearlyEqual(const TVector2<T>& Other, T Tolerance) const
 	{
-
 		return operator-(Other).IsNearlyZero(Tolerance);
 	}
 
