@@ -1,9 +1,12 @@
 ﻿#include "common_pch.h"
 #include "JCamera.h"
-#include "Window/Application.h"
+#include "Core/Window/Application.h"
+
+uint32_t JCamera::s_CameraNum = 0;
 
 JCamera::JCamera() noexcept
-	: mView{},
+	: mName(std::format(L"JCam_{}", s_CameraNum++)),
+	  mView{},
 	  mProj{},
 	  mDefaultEye(0, 0, 0),
 	  mDefaultLookAt(0, 0, 0),
@@ -22,6 +25,12 @@ JCamera::JCamera() noexcept
 	JCamera::SetViewParams(g_XMZero, g_XMIdentityR2);
 	const float aspect = static_cast<float>(MainApp.GetWindowWidth()) / static_cast<float>(MainApp.GetWindowHeight());
 	JCamera::SetProjParams(XM_PI / 4, aspect, 1.f, 1000.f);
+}
+
+JCamera::JCamera(const JWText& InName)
+	: JCamera()
+{
+	mName = InName;
 }
 
 void JCamera::Initialize()
@@ -51,8 +60,8 @@ void JCamera::Update(float_t DeltaTime)
 	XMVECTOR posDelta   = velocity * DeltaTime;
 	XMMATRIX mCameraRot = XMMatrixRotationRollPitchYaw(mPitch, mYaw, 0);
 	// Transform vectors based on camera's rotation matrix
-	XMVECTOR worldUp       = XMVector3TransformCoord(UpVector, mCameraRot);
-	XMVECTOR worldAhead    = XMVector3TransformCoord(ForwardVector, mCameraRot);
+	XMVECTOR worldUp       = XMVector3TransformCoord(M_UpVector, mCameraRot);
+	XMVECTOR worldAhead    = XMVector3TransformCoord(M_ForwardVector, mCameraRot);
 	XMVECTOR posDeltaWorld = XMVector3TransformCoord(posDelta, mCameraRot);
 
 
@@ -94,7 +103,7 @@ void JCamera::SetViewParams(FXMVECTOR InEyeVec, FXMVECTOR InLookAtVec)
 	XMStoreFloat3(&mLookAt, InLookAtVec);
 	XMStoreFloat3(&mDefaultLookAt, InLookAtVec);
 
-	XMMATRIX viewMat = XMMatrixLookAtLH(InEyeVec, InLookAtVec, g_XMIdentityR1);
+	XMMATRIX viewMat = XMMatrixLookAtLH(InEyeVec, InLookAtVec, M_UpVector);
 	XMStoreFloat4x4(&mView, viewMat);
 
 	XMMATRIX inverseViewMat = XMMatrixInverse(nullptr, viewMat);
@@ -161,7 +170,7 @@ void JCamera::UpdateVelocity(float DeltaTime)
 			else
 			{
 				// Zero velocity
-				mVelocity = XMFLOAT3(0, 0, 0);
+				mVelocity = FVector::ZeroVector;
 			}
 		}
 	}
@@ -196,7 +205,7 @@ void JCamera::UpdateRotation(float DeltaTime)
 
 void JCamera::UpdateInput()
 {
-	mInputDirection = XMFLOAT3(0, 0, 0);
+	mInputDirection = FVector::ZeroVector;
 
 	if (IsKeyPressed(EKeyCode::W))
 		mInputDirection.z += 1.f;

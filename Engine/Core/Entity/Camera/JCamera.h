@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include <DirectXMath.h>
 
-#include "Graphics/graphics_common_include.h"
-#include "Interface/ICoreInterface.h"
-#include "Input/XKeyboardMouse.h"
+#include "Core/Graphics/graphics_common_include.h"
+#include "Core/Interface/ICoreInterface.h"
+#include "Core/Input/XKeyboardMouse.h"
 
 /**
  * directx11 sdk example - DXUTcamera 참고
@@ -13,6 +13,7 @@ class JCamera : public ICoreInterface
 {
 public:
 	JCamera() noexcept;
+	JCamera(const JWText& InName);
 
 public:
 #pragma region Core Interface
@@ -53,8 +54,8 @@ public:
 		mTotalDragTimeToZero = InTotalDragTimeToZero;
 	}
 
-	FORCEINLINE void SetClipToBoundary(bool               bInClipToBoundary, _In_opt_ XMFLOAT3* InMinBoundary,
-									   _In_opt_ XMFLOAT3* InMaxBoundary)
+	FORCEINLINE void SetClipToBoundary(bool              bInClipToBoundary, _In_opt_ FVector* InMinBoundary,
+									   _In_opt_ FVector* InMaxBoundary)
 	{
 		bClipToBoundary = bInClipToBoundary;
 		if (InMinBoundary)
@@ -101,14 +102,16 @@ private:
 	FORCEINLINE bool IsKeyDown(EKeyCode InKey) const { return mInputKeyboard.IsKeyDown(InKey); }
 
 protected:
-	XMFLOAT4X4 mWorld;
-	XMFLOAT4X4 mView;
-	XMFLOAT4X4 mProj;
+	JWText mName;
 
-	XMFLOAT3 mDefaultEye;	 // 초기 카메라 위치벡터
-	XMFLOAT3 mDefaultLookAt; // 초기 카메라 타겟벡터
-	XMFLOAT3 mEye;    		 // 현재 카메라 위치벡터
-	XMFLOAT3 mLookAt; 		 // 현재 카메라 타겟벡터
+	FMatrix mWorld;
+	FMatrix mView;
+	FMatrix mProj;
+
+	FVector mDefaultEye;	 // 초기 카메라 위치벡터
+	FVector mDefaultLookAt; // 초기 카메라 타겟벡터
+	FVector mEye;    		 // 현재 카메라 위치벡터
+	FVector mLookAt; 		 // 현재 카메라 타겟벡터
 
 	float mYaw;
 	float mPitch;
@@ -125,14 +128,14 @@ protected:
 	float mRotationValue;
 	float mTranslationValue;
 
-	XMFLOAT3 mMinBoundary;
-	XMFLOAT3 mMaxBoundary;
+	FVector mMinBoundary;
+	FVector mMaxBoundary;
 
-	XMFLOAT3 mInputDirection;
-	XMFLOAT3 mVelocity;
-	XMFLOAT3 mDragVelocity;
-	XMFLOAT2 mMouseDelta;
-	XMFLOAT2 mRotVelocity;
+	FVector  mInputDirection;
+	FVector  mVelocity;
+	FVector  mDragVelocity;
+	FVector2 mMouseDelta;
+	FVector2 mRotVelocity;
 
 	XKeyboardMouse mInputKeyboard;
 
@@ -142,4 +145,6 @@ protected:
 	bool bEnableYAxisMovement;
 	bool bClipToBoundary;
 	bool bResetCursorAfterMove;
+
+	static uint32_t s_CameraNum;
 };

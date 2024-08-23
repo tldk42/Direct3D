@@ -1,9 +1,8 @@
 ﻿#include "common_pch.h"
 #include "XTKPrimitiveBatch.h"
-#include "Core/JCamera.h"
+#include "Core/Entity/Camera/JCamera.h"
 #include "Core/Graphics/GraphicDevice.h"
-
-extern JCamera g_EditorMainCamera;
+#include "Core/Interface/MManagerInterface.h"
 
 XTKPrimitiveBatch::XTKPrimitiveBatch() = default;
 
@@ -37,9 +36,11 @@ void XTKPrimitiveBatch::Initialize()
 
 void XTKPrimitiveBatch::Update(float_t DeltaTime)
 {
-	mBatchEffect->SetWorld(g_EditorMainCamera.GetWorldMatrix());
-	mBatchEffect->SetView(g_EditorMainCamera.GetViewMatrix());
-	mBatchEffect->SetProjection(g_EditorMainCamera.GetProjMatrix());
+	const JCamera* cam = IManager.CameraManager.GetCurrentMainCam();
+
+	mBatchEffect->SetWorld(cam->GetWorldMatrix());
+	mBatchEffect->SetView(cam->GetViewMatrix());
+	mBatchEffect->SetProjection(cam->GetProjMatrix());
 
 }
 

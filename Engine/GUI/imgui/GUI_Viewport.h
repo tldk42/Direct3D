@@ -21,4 +21,6 @@ public:
 protected:
 	bool bIsFocused;
 	bool bIsHovered;
+
+	JCamera* mEditorCameraRef;
 };

@@ -1,12 +1,11 @@
 ﻿#include "common_pch.h"
 #include "GUI_Viewport.h"
 
-#include "Core/JCamera.h"
+#include "Core/Entity/Camera/JCamera.h"
 #include "Core/Graphics/GraphicDevice.h"
 #include "Core/Graphics/Viewport/MViewportManager.h"
 #include "Core/Interface/MManagerInterface.h"
 
-JCamera g_EditorMainCamera;
 
 GUI_Viewport::GUI_Viewport(const std::string& InTitle)
 	: GUI_Base(InTitle),
@@ -14,13 +13,12 @@ GUI_Viewport::GUI_Viewport(const std::string& InTitle)
 	  bIsHovered(false) {}
 
 GUI_Viewport::~GUI_Viewport()
-{
-	g_EditorMainCamera.Release();
-}
+{}
 
 void GUI_Viewport::Initialize()
 {
-	g_EditorMainCamera.Initialize();
+	mEditorCameraRef = IManager.CameraManager.GetCam(L"EditorCamera");
+	assert(mEditorCameraRef);
 }
 
 void GUI_Viewport::Update(float DeltaTime)
@@ -43,7 +41,7 @@ void GUI_Viewport::Update(float DeltaTime)
 
 		if (ImGui::IsItemHovered() || ImGui::IsItemFocused())
 		{
-			g_EditorMainCamera.Update(DeltaTime);
+			mEditorCameraRef->Update(DeltaTime);
 		}
 
 		ImGui::End();
