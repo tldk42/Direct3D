@@ -41,7 +41,6 @@ void XTKPrimitiveBatch::Update(float_t DeltaTime)
 	mBatchEffect->SetWorld(cam->GetWorldMatrix());
 	mBatchEffect->SetView(cam->GetViewMatrix());
 	mBatchEffect->SetProjection(cam->GetProjMatrix());
-
 }
 
 void XTKPrimitiveBatch::Release()

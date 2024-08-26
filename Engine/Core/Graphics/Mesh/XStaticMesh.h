@@ -1,12 +1,19 @@
 ﻿#pragma once
 #include "common_include.h"
+#include "Core/Interface/ICoreInterface.h"
 #include "Core/Interface/IRenderable.h"
 
-class XVertexBuffer;
+class XVertexMesh;
 
-class XStaticMesh : public IRenderable
+class XStaticMesh : public ICoreInterface, public IRenderable
 {
 public:
+#pragma region Core Interface
+	void Initialize() override;
+	void Update(float_t DeltaTime) override;
+	void Release() override;
+#pragma endregion
+
 #pragma region Render Interface
 	void       PreRender() override;
 	void       Render() override;
@@ -15,5 +22,5 @@ public:
 #pragma endregion
 
 protected:
-	UPtr<XVertexBuffer> mVertexBuffer;
+	UPtr<XVertexMesh> mVertexBuffer;
 };

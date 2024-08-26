@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Entity/Camera/MCameraManager.h"
 #include "Core/Graphics/Layer/XLayerBase.h"
 #include "Core/Graphics/Shader/MShaderManager.h"
 #include "Core/Graphics/Texture/MTextureManager.h"
@@ -20,6 +21,7 @@ public:
 	MShaderManager   ShaderManager;		// 셰이더
 	MGUIManager      GUIManager;		// GUI
 	MViewportManager ViewportManager;	// 뷰포트
+	MCameraManager   CameraManager;		// 카메라
 
 	MLayerManager LayerManager;		// 레이어
 

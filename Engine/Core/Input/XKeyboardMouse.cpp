@@ -83,15 +83,15 @@ void XKeyboardMouse::UpdateMouse()
 	POINT mousePoint;
 	GetCursorPos(&mousePoint);
 
-	mCurrentMouseDelta.x = mousePoint.x - mLastMousePosition.X;
-	mCurrentMouseDelta.y = mousePoint.y - mLastMousePosition.Y;
+	mCurrentMouseDelta.x = mousePoint.x - mLastMousePosition.x;
+	mCurrentMouseDelta.y = mousePoint.y - mLastMousePosition.y;
 
 	mLastMousePosition = mousePoint;
 
 	ScreenToClient(Window::GetWindow()->GetWindowHandle(), &mousePoint); // 커서의 좌표를 클라이언트 윈도우 기준으로 잡아준다.
 
-	mMousePosition.X = mousePoint.x;
-	mMousePosition.Y = mousePoint.y;
+	mMousePosition.x = mousePoint.x;
+	mMousePosition.y = mousePoint.y;
 }
 
 void XKeyboardMouse::ClearKeys()

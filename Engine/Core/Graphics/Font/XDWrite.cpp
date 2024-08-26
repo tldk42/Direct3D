@@ -41,10 +41,10 @@ void XDWrite::Render()
 							 mText.length(),
 							 mTextFormat.Get(),
 							 {
-								 mScreenPosition.X,
-								 mScreenPosition.Y,
-								 mScreenPosition.X + 600.f,
-								 mScreenPosition.Y + 600.f
+								 mScreenPosition.x,
+								 mScreenPosition.y,
+								 mScreenPosition.x + 600.f,
+								 mScreenPosition.y + 600.f
 							 },
 							 GraphicDevice::GetBrush()
 							);
@@ -120,7 +120,7 @@ void XDWrite::SetFontSize(const float InFontSize)
 	AdjustTextFormat();
 }
 
-void XDWrite::SetScreenPosition(const FVector2D& InLocation)
+void XDWrite::SetScreenPosition(const JMath::TVector2& InLocation)
 {
 	mScreenPosition = InLocation;
 }

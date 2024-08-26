@@ -22,9 +22,9 @@ JCamera::JCamera() noexcept
 	  mTranslationValue(5.f),
 	  mInputKeyboard()
 {
-	JCamera::SetViewParams(g_XMZero, g_XMIdentityR2);
+	JCamera::SetViewParams(g_XMZero, M_ForwardVector);
 	const float aspect = static_cast<float>(MainApp.GetWindowWidth()) / static_cast<float>(MainApp.GetWindowHeight());
-	JCamera::SetProjParams(XM_PI / 4, aspect, 1.f, 1000.f);
+	JCamera::SetProjParams(M_PI / 4, aspect, 1.f, 1000.f);
 }
 
 JCamera::JCamera(const JWText& InName)

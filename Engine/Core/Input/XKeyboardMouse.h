@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "enums.h"
-#include "Core/Utils/Math/Vector2D.h"
+#include "Core/Utils/Math/Vector2.h"
 
 struct FKeyboardData
 {
@@ -23,11 +23,11 @@ public:
 	void Update();
 
 public:
-	FORCEINLINE bool             IsKeyDown(const EKeyCode Key) const { return IsKeyDown_Internal(Key); }
-	FORCEINLINE bool             IsKeyUp(const EKeyCode Key) const { return IsKeyUp_Internal(Key); }
-	FORCEINLINE bool             IsKeyPressed(const EKeyCode Key) const { return IsKeyPressed_Internal(Key); }
-	FORCEINLINE const FVector2D& GetMousePosition() const { return mMousePosition; }
-	FORCEINLINE POINT            GetCurMouseDelta() const { return mCurrentMouseDelta; }
+	FORCEINLINE bool                   IsKeyDown(const EKeyCode Key) const { return IsKeyDown_Internal(Key); }
+	FORCEINLINE bool                   IsKeyUp(const EKeyCode Key) const { return IsKeyUp_Internal(Key); }
+	FORCEINLINE bool                   IsKeyPressed(const EKeyCode Key) const { return IsKeyPressed_Internal(Key); }
+	FORCEINLINE const JMath::TVector2& GetMousePosition() const { return mMousePosition; }
+	FORCEINLINE POINT                  GetCurMouseDelta() const { return mCurrentMouseDelta; }
 
 private:
 	void CreateKeys();
@@ -65,8 +65,8 @@ private:
 
 private:
 	std::vector<FKeyboardData> mKeys;
-	FVector2D                  mLastMousePosition;
-	FVector2D                  mMousePosition;
+	JMath::TVector2            mLastMousePosition;
+	JMath::TVector2            mMousePosition;
 
 	POINT mCurrentMouseDelta;
 };

@@ -10,10 +10,13 @@ MManagerInterface::MManagerInterface()
 	  ShaderManager(),
 	  GUIManager(),
 	  ViewportManager(),
+	  CameraManager(),
 	  LayerManager() {}
 
 void MManagerInterface::Initialize()
 {
+	CameraManager.Initialize();
+
 	GUIManager.Initialize();
 
 	// 에디터 뷰포트 창 생성

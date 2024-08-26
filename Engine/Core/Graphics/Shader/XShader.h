@@ -1,36 +1,34 @@
 ﻿#pragma once
 #include "Core/Graphics/graphics_common_include.h"
-#include "Core/Interface/ICoreInterface.h"
 
-class XShader : public ICoreInterface
+class XShader
 {
 public:
-	explicit XShader(const JWText& InVertexShader);
-	explicit XShader(const JWText& InVertexShader, const JWText& InPixelShader);
-	~XShader() override;
+	explicit XShader(const JWText& InShaderFile, LPCSTR VSEntryPoint = "VS", LPCSTR PSEntryPoint = "PS");
+	~XShader();
 
 public:
 #pragma region Core Interface
-	void Initialize() override;
-	void Update(float_t DeltaTime) override;
+	void Update();
 	void Render();
-	void Release() override;
+	void Release();
 #pragma endregion
 
 private:
+	void HandleLayout();
+
 	static HRESULT LoadVertexShader(ID3D11Device*        Device, const JWText& VertexFileName,
 									ID3D11VertexShader** VertexShader,
-									ID3DBlob**           OutBlob = nullptr);
+									ID3DBlob**           OutBlob = nullptr, LPCSTR EntryPoint = nullptr);
 	static HRESULT LoadPixelShader(ID3D11Device*       Device, const JWText& PixelFileName,
 								   ID3D11PixelShader** pixelShader,
-								   ID3DBlob**          OutBlob = nullptr);
+								   ID3DBlob**          OutBlob = nullptr, LPCSTR EntryPoint = nullptr);
 
 	static HRESULT CompileShader(const WCHAR* FileName, LPCSTR        EntryPoint,
 								 LPCSTR       ShaderModel, ID3DBlob** OutBlob);
 
 private:
-	JWText mVertexShaderFile;
-	JWText mPixelShaderFile;
+	JWText mShaderFile;
 
 #pragma region Shader
 	ComPtr<ID3D11VertexShader> mVertexShader;

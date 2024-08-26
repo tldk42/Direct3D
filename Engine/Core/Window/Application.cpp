@@ -1,8 +1,9 @@
 ﻿#include "common_pch.h"
 #include "Application.h"
-#include "Core/JCamera.h"
+#include "Core/Entity/Camera/JCamera.h"
 #include "Core/Graphics/GraphicDevice.h"
 #include "Core/Graphics/Font/XDWrite.h"
+#include "Core/Graphics/Mesh/FBXLoader/MFBXLoader.h"
 #include "Core/Graphics/Viewport/MViewportManager.h"
 #include "Core/Interface/MManagerInterface.h"
 #include "GUI/imgui/GUI_Viewport.h"
@@ -34,7 +35,10 @@ void Application::Run()
 
 		HandleFrame();
 
-		HandleTick();
+		if (mTimer.Elapsed() - mTime > 1.f)
+		{
+			HandleTick();
+		}
 
 		CheckWindowClosure();
 	}
@@ -63,16 +67,13 @@ void Application::Initialize()
 	g_FpsText.SetFontSize(48);
 	g_FpsText.SetColor(FLinearColor::Orange);
 	g_FpsText.SetScreenPosition({25, 25});
+
+	// MFBXLoader loader;
+	// loader.Load();
 }
 
 void Application::Update(float DeltaTime)
 {
-	HWND handle = mWindow->GetWindowHandle();
-	if (handle == GetFocus() ||
-		handle == GetForegroundWindow())
-	{
-	}
-
 	IManager.Update(DeltaTime);
 
 	G_Context.Update(DeltaTime);
@@ -124,16 +125,14 @@ void Application::HandleFrame()
 
 void Application::HandleTick()
 {
-	if (mTimer.Elapsed() - mTime > 1.f)
-	{
-		mTime += 1.f;
+	mTime += 1.f;
 
-		mFramesPerSec = mFrameCounter;
+	mFramesPerSec = mFrameCounter;
 
-		mFrameCounter = 0;
-		// TODO: Tick
-	}
+	mFrameCounter = 0;
+	// TODO: Tick
 }
+
 
 void Application::CheckWindowClosure()
 {

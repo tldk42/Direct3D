@@ -1,6 +1,6 @@
 #pragma once
 #include "graphics_common_include.h"
-#include "Core/Utils/Math/Vector2D.h"
+#include "Core/Utils/Math/Vector2.h"
 
 inline Matrix TranslationMatrix(float InX, float InY, float InZ = 0.f)
 {

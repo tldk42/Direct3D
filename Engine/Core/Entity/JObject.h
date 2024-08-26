@@ -2,6 +2,11 @@
 
 #include "common_include.h"
 
+struct FVertex
+{
+	
+};
+
 CLASS_PTR(JObject)
 
 class JObject

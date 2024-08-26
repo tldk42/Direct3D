@@ -2,19 +2,19 @@
 
 namespace JMath
 {
-	template <typename T>
-	struct TVector;
-	template <typename T>
 	struct TVector2;
+	struct TVector;
+	struct TVector4;
 
+	struct TMatrix;
 
-	template <typename T>
-	struct TBox2;
-
-	template <typename T>
-	struct TTransform;
-
+	struct TQuaternion;
 }
 
-using FVector   = JMath::TVector<float>;
-using FVector2D = JMath::TVector2<float>;		
+using FVector2 = JMath::TVector2;
+using FVector  = JMath::TVector;
+using FVector4 = JMath::TVector4;
+
+using FMatrix = JMath::TMatrix;
+
+using FQuaternion = JMath::TQuaternion;

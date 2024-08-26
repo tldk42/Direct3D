@@ -3,7 +3,7 @@
 #include "Core/Interface/ICoreInterface.h"
 #include "Core/Interface/IRenderable.h"
 #include "Core/Graphics/graphics_common_include.h"
-#include "Core/Utils/Math/Vector2D.h"
+#include "Core/Utils/Math/Vector2.h"
 
 
 class XDWrite : public ICoreInterface, public IRenderable
@@ -36,7 +36,7 @@ public:
 	void SetFontStretch(const DWRITE_FONT_STRETCH InFontStretch);
 	void SetFontSize(const float InFontSize);
 
-	void SetScreenPosition(const FVector2D& InLocation);
+	void SetScreenPosition(const JMath::TVector2& InLocation);
 
 private:
 	void AdjustTextFormat();
@@ -52,5 +52,5 @@ private:
 	JWText                    mText;
 	D2D1_COLOR_F              mBrushColor;
 
-	FVector2D mScreenPosition;
+	JMath::TVector2 mScreenPosition;
 };

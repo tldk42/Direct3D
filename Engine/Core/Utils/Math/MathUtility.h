@@ -1,3 +1,4 @@
+#pragma once
 #define M_PI  (3.1415926535897932f)
 #define M_SMALL_NUMBER (0.00000001)
 #define M_KINDA_SMALL_NUMBER (0.0001)

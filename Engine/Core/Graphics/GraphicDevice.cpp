@@ -172,7 +172,7 @@ void GraphicDevice::CreateSwapChain()
 		mSwapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_DISCARD; // Swap이 일어난 이후 버퍼를 Discard
 		mSwapChainDesc.Scaling            = DXGI_SCALING_NONE; // Scaling 없음
 		mSwapChainDesc.Stereo             = FALSE; // 스테레오 사용하지 않음
-		mSwapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 적합한 디스플레이로 자동전환
+		mSwapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; 
 	}
 
 	CheckResult(

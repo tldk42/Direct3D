@@ -3,7 +3,7 @@
 #include "Core/Manager/Manager_Base.h"
 #include "Core/Utils/Timer.h"
 
-class XVertexBuffer;
+class XVertexMesh;
 struct FBasicWindowData;
 
 #define MainApp Application::Get()

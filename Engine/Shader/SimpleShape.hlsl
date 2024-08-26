@@ -1,0 +1,56 @@
+﻿// A constant buffer that stores the three basic column-major matrices for composing geometry.
+cbuffer ModelViewProjectionConstantBuffer : register(b0)
+{
+	matrix model;
+	matrix view;
+	matrix projection;
+};
+
+// Per-vertex data used as input to the vertex shader.
+struct VertexShaderInput
+{
+	float3 pos : POSITION;
+	float3 normal : NORMAL;
+	float2 uv : TEXCOORD0;
+};
+
+// Per-pixel color data passed through the pixel shader.
+struct PixelShaderInput
+{
+	float4 pos : SV_POSITION;
+	float3 normal : NORMAL;
+	float2 uv : TEXCOORD0;
+};
+
+// Simple shader to do vertex processing on the GPU.
+PixelShaderInput vs(VertexShaderInput input)
+{
+	PixelShaderInput output;
+	float4 pos = float4(input.pos, 1.0f);
+
+	// Transform the vertex position into projected space.
+	pos = mul(pos, model);
+	pos = mul(pos, view);
+	pos = mul(pos, projection);
+	output.pos = pos;
+
+	// Pass the texCoods through without modification.
+	output.uv = input.uv;
+
+	return output;
+}
+
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+// A pass-through function for the (interpolated) color data.
+float4 ps(PixelShaderInput input) : SV_TARGET
+{
+	float4 textureColor;
+
+	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
+	textureColor = shaderTexture.Sample(SampleType, input.uv);
+
+	return textureColor;
+}
+

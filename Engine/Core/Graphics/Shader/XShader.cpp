@@ -6,20 +6,29 @@
 #include "Debug/Assert.h"
 #include "Core/Graphics/GraphicDevice.h"
 
-XShader::XShader(const JWText& InVertexShader)
-	: mVertexShaderFile(InVertexShader),
-	  mPixelShaderFile(InVertexShader)
+XShader::XShader(const JWText& InShaderFile, LPCSTR VSEntryPoint, LPCSTR PSEntryPoint)
+	: mShaderFile(InShaderFile)
 {
-	XShader::Initialize();
+	CheckResult(
+				LoadVertexShader(
+								 G_Context.GetDevice()
+								 , mShaderFile,
+								 mVertexShader.GetAddressOf()
+								 , mVertexShaderBuf.GetAddressOf(),
+								 VSEntryPoint
+								));
+	CheckResult(
+				LoadPixelShader(
+								G_Context.GetDevice(),
+								mShaderFile,
+								mPixelShader.GetAddressOf(),
+								nullptr,
+								PSEntryPoint
+							   ));
+
+	HandleLayout();
 }
 
-XShader::XShader(const JWText& InVertexShader, const JWText& InPixelShader)
-	: mVertexShaderFile(InVertexShader),
-	  mPixelShaderFile(InPixelShader)
-{
-	XShader::Initialize();
-
-}
 
 XShader::~XShader()
 {
@@ -28,33 +37,7 @@ XShader::~XShader()
 	mVertexShaderBuf = nullptr;
 }
 
-void XShader::Initialize()
-{
-	CheckResult(
-				LoadVertexShader(
-								 G_Context.GetDevice()
-								 , mVertexShaderFile,
-								 mVertexShader.GetAddressOf()
-								 , mVertexShaderBuf.GetAddressOf()
-								));
-	CheckResult(
-				LoadPixelShader(
-								G_Context.GetDevice(),
-								mPixelShaderFile,
-								mPixelShader.GetAddressOf()
-							   ));
-
-	CheckResult(
-				G_Context.GetDevice()->CreateInputLayout(
-														 ALPHABLEND_LAYOUT,
-														 ARRAYSIZE(ALPHABLEND_LAYOUT),
-														 mVertexShaderBuf->GetBufferPointer(),
-														 mVertexShaderBuf->GetBufferSize(),
-														 mVertexLayout.GetAddressOf()
-														));
-}
-
-void XShader::Update(float_t DeltaTime) {}
+void XShader::Update() {}
 
 void XShader::Render()
 {
@@ -74,11 +57,41 @@ void XShader::Release()
 	mVertexLayout    = nullptr;
 }
 
+void XShader::HandleLayout()
+{
+	uint32_t hash = StringHash(mShaderFile.c_str());
+
+	if (hash == HASH_INPUT_LAYOUT_STATIC_MESH)
+	{
+		CheckResult(
+					G_Context.GetDevice()->CreateInputLayout(
+															 InputLayout::ALPHABLEND_LAYOUT,
+															 ARRAYSIZE(InputLayout::ALPHABLEND_LAYOUT),
+															 mVertexShaderBuf->GetBufferPointer(),
+															 mVertexShaderBuf->GetBufferSize(),
+															 mVertexLayout.GetAddressOf()
+															));
+	}
+	else if (hash == HASH_INPUT_LAYOUT_SKELETAL_MESH)
+	{
+		CheckResult(
+					G_Context.GetDevice()->CreateInputLayout(
+															 InputLayout::FBX_MODEL_LAYOUT,
+															 ARRAYSIZE(InputLayout::FBX_MODEL_LAYOUT),
+															 mVertexShaderBuf->GetBufferPointer(),
+															 mVertexShaderBuf->GetBufferSize(),
+															 mVertexLayout.GetAddressOf()
+															));
+	}
+
+
+}
+
 HRESULT XShader::LoadVertexShader(ID3D11Device* Device, const JWText& VertexFileName, ID3D11VertexShader** VertexShader,
-								  ID3DBlob**    OutBlob)
+								  ID3DBlob**    OutBlob, LPCSTR       EntryPoint)
 {
 	ID3DBlob* blob;
-	HRESULT   result = CompileShader(VertexFileName.c_str(), "vs", "vs_5_0",
+	HRESULT   result = CompileShader(VertexFileName.c_str(), EntryPoint, "vs_5_0",
 								   &blob);
 	if (FAILED(result))
 	{
@@ -106,10 +119,10 @@ HRESULT XShader::LoadVertexShader(ID3D11Device* Device, const JWText& VertexFile
 }
 
 HRESULT XShader::LoadPixelShader(ID3D11Device* Device, const JWText& PixelFileName, ID3D11PixelShader** pixelShader,
-								 ID3DBlob**    OutBlob)
+								 ID3DBlob**    OutBlob, LPCSTR       EntryPoint)
 {
 	ID3DBlob* blob;
-	HRESULT   result = CompileShader(PixelFileName.c_str(), "ps", "ps_5_0",
+	HRESULT   result = CompileShader(PixelFileName.c_str(), EntryPoint, "ps_5_0",
 								   &blob);
 	if (FAILED(result))
 	{

@@ -1,5 +1,6 @@
 #include "common_pch.h"
-#include "Vector.h"
+#include "TMatrix.h"
+#include "Vector4.h"
 /*
   XMMATRIX : 새로운 행렬을 만들 때 사용 (SIMD 연산 가능)
   XMMatrixSet : 행렬을 만들고 값을 초기화할 때 사용
@@ -10,19 +11,29 @@
   XMMatrixTranspose : 전치행렬로 바꿈 (4,1 원소가 1,4가 되게 하는게 전치행렬)
 */
 
-template <> const FVector FVector::ZeroVector(0, 0, 0);
-template <> const FVector FVector::OneVector(1, 1, 1);
-template <> const FVector FVector::UpVector(0, 0, 1);
-template <> const FVector FVector::DownVector(0, 0, -1);
-template <> const FVector FVector::ForwardVector(1, 0, 0);
-template <> const FVector FVector::BackwardVector(-1, 0, 0);
-template <> const FVector FVector::RightVector(0, 1, 0);
-template <> const FVector FVector::LeftVector(0, -1, 0);
-template <> const FVector FVector::XAxisVector(1, 0, 0);
-template <> const FVector FVector::YAxisVector(0, 1, 0);
-template <> const FVector FVector::ZAxisVector(0, 0, 1);
+const JMath::TVector JMath::TVector::ZeroVector(0, 0, 0);
+const JMath::TVector JMath::TVector::OneVector(1, 1, 1);
+const JMath::TVector JMath::TVector::UpVector(0, 0, 1);
+const JMath::TVector JMath::TVector::DownVector(0, 0, -1);
+const JMath::TVector JMath::TVector::ForwardVector(1, 0, 0);
+const JMath::TVector JMath::TVector::BackwardVector(-1, 0, 0);
+const JMath::TVector JMath::TVector::RightVector(0, 1, 0);
+const JMath::TVector JMath::TVector::LeftVector(0, -1, 0);
+const JMath::TVector JMath::TVector::XAxisVector(1, 0, 0);
+const JMath::TVector JMath::TVector::YAxisVector(0, 1, 0);
+const JMath::TVector JMath::TVector::ZAxisVector(0, 0, 1);
 
+const JMath::TVector4 JMath::TVector4::ZeroVector(0, 0, 0, 0);
+const JMath::TVector4 JMath::TVector4::OneVector(1, 1, 1, 1);
 
-template <> const FVector2D FVector2D::ZeroVector(0.f, 0.f);
-template <> const FVector2D FVector2D::UnitVector(1.f, 1.f);
-template <> const FVector2D FVector2D::Unit45Deg(M_INVERSE_SQRT_2, M_INVERSE_SQRT_2);
+const JMath::TVector2 JMath::TVector2::ZeroVector(0.f, 0.f);
+const JMath::TVector2 JMath::TVector2::UnitVector(1.f, 1.f);
+const JMath::TVector2 JMath::TVector2::Unit45Deg(M_INVERSE_SQRT_2, M_INVERSE_SQRT_2);
+
+const JMath::TMatrix JMath::TMatrix::Identity{
+	1.f, 0.f, 0.f, 0.f,
+	0.f, 1.f, 0.f, 0.f,
+	0.f, 0.f, 1.f, 0.f,
+	0.f, 0.f, 0.f, 1.f
+};
+const JMath::TQuaternion JMath::TQuaternion::Identity(0, 0, 0, 1);
