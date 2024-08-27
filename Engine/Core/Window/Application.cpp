@@ -3,7 +3,7 @@
 #include "Core/Entity/Camera/JCamera.h"
 #include "Core/Graphics/GraphicDevice.h"
 #include "Core/Graphics/Font/XDWrite.h"
-#include "Core/Graphics/Mesh/FBXLoader/MFBXLoader.h"
+#include "Core/Graphics/Mesh/FBXLoader/MFBXManager.h"
 #include "Core/Graphics/Viewport/MViewportManager.h"
 #include "Core/Interface/MManagerInterface.h"
 #include "GUI/imgui/GUI_Viewport.h"
@@ -68,7 +68,7 @@ void Application::Initialize()
 	g_FpsText.SetColor(FLinearColor::Orange);
 	g_FpsText.SetScreenPosition({25, 25});
 
-	// MFBXLoader loader;
+	// MFBXManager loader;
 	// loader.Load();
 }
 

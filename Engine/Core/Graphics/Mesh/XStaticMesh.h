@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "common_include.h"
+#include "Core/Graphics/ShaderStructs.h"
 #include "Core/Interface/ICoreInterface.h"
 #include "Core/Interface/IRenderable.h"
 
@@ -22,5 +23,7 @@ public:
 #pragma endregion
 
 protected:
-	UPtr<XVertexMesh> mVertexBuffer;
+	std::vector<FVertexInfo_Simple> mVertices;
+
+	ComPtr<ID3D11Buffer> mVertexBuffer;
 };

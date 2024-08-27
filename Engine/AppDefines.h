@@ -3,6 +3,8 @@
 #include "Core/Window/Window.h"
 
 // ---------------------------- Resolution -------------------------
+constexpr uint32_t HD_X = 1280;
+constexpr uint32_t HD_Y = 720;
 constexpr uint32_t FHD_X = 1920;
 constexpr uint32_t FHD_Y = 1080;
 constexpr uint32_t QHD_X = 2560;

@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Entity/Camera/MCameraManager.h"
 #include "Core/Graphics/Layer/XLayerBase.h"
+#include "Core/Graphics/Mesh/FBXLoader/MFBXManager.h"
 #include "Core/Graphics/Shader/MShaderManager.h"
 #include "Core/Graphics/Texture/MTextureManager.h"
 #include "Core/Graphics/Viewport/MViewportManager.h"
@@ -22,6 +23,7 @@ public:
 	MGUIManager      GUIManager;		// GUI
 	MViewportManager ViewportManager;	// 뷰포트
 	MCameraManager   CameraManager;		// 카메라
+	MFBXManager      FbxManager;
 
 	MLayerManager LayerManager;		// 레이어
 

@@ -1,4 +1,5 @@
-﻿#include "GraphicDevice.h"
+﻿#pragma once
+#include "GraphicDevice.h"
 #include "Core/Graphics/graphics_common_include.h"
 #include "Core/Utils/Math/Vector4.h"
 

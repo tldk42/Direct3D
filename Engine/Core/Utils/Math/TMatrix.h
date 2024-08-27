@@ -58,6 +58,10 @@ namespace JMath
 		// Unary operators
 		TMatrix operator+() const { return *this; }
 		TMatrix operator-() const;
+		TMatrix operator*(const TMatrix& M1, const TMatrix& M2);
+		TMatrix operator*(const TMatrix& M);
+		TMatrix operator*(const TMatrix& M, float Scale);
+		TMatrix operator*(float Scale);
 
 		// Properties
 		TVector Up() const;
