@@ -291,6 +291,7 @@
     <ClCompile Include="Core\Utils\Math\Vector2.cpp" />
     <ClCompile Include="Core\Utils\Math\Vector.cpp" />
     <ClCompile Include="Core\Utils\Math\Vector4.cpp" />
+    <ClCompile Include="Core\Utils\ObjectLoader\Loader.cpp" />
     <ClCompile Include="Core\Window\Application.cpp" />
     <ClCompile Include="Core\Window\Window.cpp" />
     <ClCompile Include="EntryPoint.cpp">
@@ -364,6 +365,7 @@
     <ClInclude Include="Core\Utils\Math\Vector.h" />
     <ClInclude Include="Core\Utils\Math\Vector2.h" />
     <ClInclude Include="Core\Utils\Math\Vector4.h" />
+    <ClInclude Include="Core\Utils\ObjectLoader\Loader.h" />
     <ClInclude Include="Core\Utils\Timer.h" />
     <ClInclude Include="Core\Utils\Utils.h" />
     <ClInclude Include="Core\Window\Application.h" />

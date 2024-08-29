@@ -116,24 +116,21 @@ public:
 	XFBXObj(const JWText& InName);
 
 public:
-	/** fbx sdk 설정 */
+	/** fbx sdk 초기화 및 생성 */
 	void Initialize();
-	void ClearData();
-	bool Load(FbxNode* InRootNode);
+	/** 존재하는 모든 fbx sdk destroy (프로세스 종료 전에 호출) */
+	void Release();
+
+public:
+	bool Load();
+	bool Load(const char* InFilePath);
 
 private:
-	bool    Load();
-	void    PreProcess(FbxNode* InNode);
-	void    ParseNode(FbxNode* InNode, const FMatrix& ParentWorldMat);
+	void    PreProcess_Recursive(FbxNode* InNode);
+	void    ParseNode_Recursive(FbxNode* InNode, const FMatrix& ParentWorldMat);
+	void    ParseAnimation();
 	void    ParseMesh(FbxNode* InNode, FbxMesh* InMesh);
 	FMatrix ParseTransform(FbxNode* InNode, const FMatrix& ParentWorldMat);
-	bool    LoadMesh_Recursive(FbxNode* InNode);
-	bool    LoadUV(FbxMesh* InMesh, FVertexInfo_Simple* vertices, WORD* indices);
-
-private:
-	void             PrintNode(FbxNode* InNode);
-	void             PrintNodeAttribute(FbxNodeAttribute* InNodeAttribute) const;
-	static FbxString GetAttributeTypeName(FbxNodeAttribute::EType type);
 
 private:
 	JText mFileName;
@@ -141,67 +138,67 @@ private:
 	FbxImporter* mFbxImporter;
 	FbxScene*    mFbxScene;
 
-	std::vector<FMeshData> mMeshData;
+	std::unordered_map<JWText, FMatrix> mFrameMatrix;
 
 	std::vector<FLayerInfo> mFbxLayerList;
 };
 
 
-class MFBXManager : public Manager_Base<XFBXObj, MFBXManager>
-{
-public:
-	void Initialize();
-	void Release();
-
-	void Load(JWTextView InFileName);
-	void Load_Internal();
-
-protected:
-	void CreateConstantBuffer();
-
-private:
-	void PreProcess(FbxNode* InFbxNode, Ptr<FFBX_DataModel> InModel);
-	void ParseAnimation();
-	void ParseMesh(Ptr<FFBX_DataModel> InModel);
-
-	void ReadTextureCoord(FbxLayerElementUV* InUvSet, int32_t InVertexIndex, int32_t InUVIndex,
-						  FbxVector2& InUv);
-	FbxColor ReadColor(size_t InSize, FbxLayerElementVertexColor* InFbxLayerElementVertexColor,
-					   int32_t InDccIndex, int32_t InVertexIndex);
-	FbxVector4 ReadNormal(FbxMesh* InMesh, int32_t InControlPointIndex, int32_t InVertexCounter);
-	FbxVector4 ReadNormal(FbxMesh* InMesh, size_t InVertexNormalCount, FbxLayerElementNormal* InVertexNormalSets,
-						  int32_t  IncontrolPointIndex, int32_t InVertexIndex);
-
-public:
-	FbxManager* mFbxManager;
-
-private:
-	// FbxImporter* mFbxImporter;
-	// FbxScene*    mFbxScene;
-	// FbxNode* mRootNode;
-
-
-	std::vector<Ptr<FFBX_DataModel>> mDrawList;
-	std::vector<Ptr<FFBX_DataModel>> mTreeList;
-
-	std::map<FbxNode*, int32_t>           mFbxNodeMap;
-	std::map<JWText, Ptr<FFBX_DataModel>> mFbxModelMap;
-	ComPtr<ID3D11Buffer>                  mBone;
-
-#pragma region Singleton Boilerplate
-
-private:
-	friend class TSingleton<MFBXManager>;
-	friend class MManagerInterface;
-
-	MFBXManager();
-
-public:
-	MFBXManager(const MFBXManager&)            = delete;
-	MFBXManager& operator=(const MFBXManager&) = delete;
-
-#pragma endregion
-};
-
-class ModelLoader
-{};
+// class MFBXManager : public Manager_Base<XFBXObj, MFBXManager>
+// {
+// public:
+// 	void Initialize();
+// 	void Release();
+//
+// 	void Load(JWTextView InFileName);
+// 	void Load_Internal();
+//
+// protected:
+// 	void CreateConstantBuffer();
+//
+// private:
+// 	void PreProcess_Recursive(FbxNode* InFbxNode, Ptr<FFBX_DataModel> InModel);
+// 	void ParseAnimation();
+// 	void ParseMesh(Ptr<FFBX_DataModel> InModel);
+//
+// 	void ReadTextureCoord(FbxLayerElementUV* InUvSet, int32_t InVertexIndex, int32_t InUVIndex,
+// 						  FbxVector2& InUv);
+// 	FbxColor ReadColor(size_t InSize, FbxLayerElementVertexColor* InFbxLayerElementVertexColor,
+// 					   int32_t InDccIndex, int32_t InVertexIndex);
+// 	FbxVector4 ReadNormal(FbxMesh* InMesh, int32_t InControlPointIndex, int32_t InVertexCounter);
+// 	FbxVector4 ReadNormal(FbxMesh* InMesh, size_t InVertexNormalCount, FbxLayerElementNormal* InVertexNormalSets,
+// 						  int32_t  IncontrolPointIndex, int32_t InVertexIndex);
+//
+// public:
+// 	FbxManager* mFbxManager;
+//
+// private:
+// 	// FbxImporter* mFbxImporter;
+// 	// FbxScene*    mFbxScene;
+// 	// FbxNode* mRootNode;
+//
+//
+// 	std::vector<Ptr<FFBX_DataModel>> mDrawList;
+// 	std::vector<Ptr<FFBX_DataModel>> mTreeList;
+//
+// 	std::map<FbxNode*, int32_t>           mFbxNodeMap;
+// 	std::map<JWText, Ptr<FFBX_DataModel>> mFbxModelMap;
+// 	ComPtr<ID3D11Buffer>                  mBone;
+//
+// #pragma region Singleton Boilerplate
+//
+// private:
+// 	friend class TSingleton<MFBXManager>;
+// 	friend class MManagerInterface;
+//
+// 	MFBXManager();
+//
+// public:
+// 	MFBXManager(const MFBXManager&)            = delete;
+// 	MFBXManager& operator=(const MFBXManager&) = delete;
+//
+// #pragma endregion
+// };
+//
+// class ModelLoader
+// {};

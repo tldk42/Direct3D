@@ -303,17 +303,7 @@ namespace JMath
 		XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R._41), v4);
 		return R;
 	}
-
-	TMatrix TMatrix::operator*(const TMatrix& M1, const TMatrix& M2)
-	{
-		XMMATRIX m1 = XMLoadFloat4x4(&M1);
-		XMMATRIX m2 = XMLoadFloat4x4((XMFLOAT4X4*)&M2);
-		XMMATRIX X  = XMMatrixMultiply(m1, m2);
-
-		TMatrix R;
-		XMStoreFloat4x4(&R, X);
-		return R;
-	}
+	
 
 	TMatrix TMatrix::operator*(const TMatrix& M)
 	{
@@ -323,26 +313,6 @@ namespace JMath
 
 		TMatrix R;
 		XMStoreFloat4x4(&R, X);
-		return R;
-	}
-
-	TMatrix TMatrix::operator*(const TMatrix& M, float Scale)
-	{
-		XMVECTOR x1 = XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(&M._11));
-		XMVECTOR x2 = XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(&M._21));
-		XMVECTOR x3 = XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(&M._31));
-		XMVECTOR x4 = XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(&M._41));
-
-		x1 = XMVectorScale(x1, Scale);
-		x2 = XMVectorScale(x2, Scale);
-		x3 = XMVectorScale(x3, Scale);
-		x4 = XMVectorScale(x4, Scale);
-
-		TMatrix R;
-		XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R._11), x1);
-		XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R._21), x2);
-		XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R._31), x3);
-		XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&R._41), x4);
 		return R;
 	}
 

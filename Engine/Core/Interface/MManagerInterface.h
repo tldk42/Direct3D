@@ -23,7 +23,7 @@ public:
 	MGUIManager      GUIManager;		// GUI
 	MViewportManager ViewportManager;	// 뷰포트
 	MCameraManager   CameraManager;		// 카메라
-	MFBXManager      FbxManager;
+	// MFBXManager      FbxManager;
 
 	MLayerManager LayerManager;		// 레이어
 

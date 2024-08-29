@@ -27,9 +27,13 @@ void XStaticMesh::Initialize()
 												   ));
 }
 
-void       XStaticMesh::Update(float_t DeltaTime) {}
-void       XStaticMesh::Release() {}
-void       XStaticMesh::PreRender() {}
-void       XStaticMesh::Render() {}
-void       XStaticMesh::PostRender() {}
-ELayerType XStaticMesh::GetLayerType() {}
+void XStaticMesh::Update(float_t DeltaTime) {}
+void XStaticMesh::Release() {}
+void XStaticMesh::PreRender() {}
+void XStaticMesh::Render() {}
+void XStaticMesh::PostRender() {}
+
+ELayerType XStaticMesh::GetLayerType()
+{
+	return ELayerType::End;
+}

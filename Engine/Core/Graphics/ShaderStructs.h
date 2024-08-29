@@ -18,6 +18,22 @@ struct FVertexInfo_Simple
 	FVector4 Color;
 };
 
+class JActor
+{
+public:
+	std::vector<Ptr<struct JMesh>> mMesh;
+	FMatrix                        mWorldMat;
+
+};
+
+class JMesh : public JActor
+{
+public:
+	JMesh* mParentMesh;
+	
+};
+
+
 struct FMeshData
 {
 	/** 정점 배열 */
@@ -62,3 +78,32 @@ inline void FMeshData::Initialize()
 													VertexBuffer.GetAddressOf()
 												   ));
 }
+
+template <typename T>
+struct FTri
+{
+	int32_t SubIndex = -1;
+	T       Vertex[3];
+	FVector Normal;
+
+public:
+	FTri() = default;
+
+	FTri(int32_t InIndex)
+		: SubIndex(InIndex) {};
+};
+
+template <typename T>
+struct JData
+{
+	int32_t                 FaceCount = 0;
+	std::vector<T>          VertexArray;
+	std::vector<WORD>       IndexArray;
+	std::vector<FTri<T>>    TriList;
+	std::vector<Ptr<JData>> SubMesh;
+	std::vector<JData*>     ChildMesh;
+	T*                      DrawVertex = nullptr;
+	FMatrix                 InverseMatrix;
+};
+
+typedef JData<FVertexInfo_Simple> FbxData;
