@@ -15,7 +15,7 @@ public:
 	virtual void BeginPlay() {}
 	virtual void Tick(float DeltaTime) {}
 
-	[[nodiscard]] FORCEINLINE JTextView GetName() const { return mName; }
+	[[nodiscard]] FORCEINLINE JText GetName() const { return mName; }
 
 	template <class ObjectType, typename... Args>
 	ObjectType* CreateDefaultSubObject(Args... args)
@@ -38,7 +38,8 @@ protected:
 	JText    mName;
 	uint32_t mPrimaryKey;
 
-	std::vector<JObjectUPtr> mChildObjs;
+	JObject*                   mParentObj;
+	std::vector<UPtr<JObject>> mChildObjs;
 
 	static uint32_t g_DefaultObjectNum;
 

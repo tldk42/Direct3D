@@ -3,22 +3,29 @@
 #include "Core/Entity/Camera/JCamera.h"
 #include "Core/Graphics/GraphicDevice.h"
 #include "Core/Graphics/Font/XDWrite.h"
-#include "Core/Graphics/Mesh/FBXLoader/MFBXManager.h"
 #include "Core/Graphics/Viewport/MViewportManager.h"
 #include "Core/Interface/MManagerInterface.h"
 #include "GUI/imgui/GUI_Viewport.h"
 #include "Core/Utils/Logger.h"
 #include "Core/Utils/Timer.h"
 #include "Core/Utils/Math/Color.h"
+#include "Core/Utils/ObjectLoader/FbxObject.h"
 #include "Core/Window/Window.h"
 
 XDWrite g_FpsText(nullptr);
+CFBXObj g_testObj("Game/Model/SM_Barrel.fbx");
+
 
 Application::Application()
 	: Application(L"Renderer", FBasicWindowData(1600, 900, false, false)) {}
 
 Application::Application(LPCWSTR WindowTitle, const FBasicWindowData& WindowData)
-	: bRunning(false), bMinimized(false), mDeltaTime(0), mTime(0), mCurrentTime(0), mFramesPerSec(0)
+	: bRunning(false),
+	  bMinimized(false),
+	  mDeltaTime(0),
+	  mTime(0),
+	  mCurrentTime(0),
+	  mFramesPerSec(0)
 {
 	mWindow = std::make_unique<Window>(WindowTitle, WindowData);
 }
@@ -67,6 +74,8 @@ void Application::Initialize()
 	g_FpsText.SetFontSize(48);
 	g_FpsText.SetColor(FLinearColor::Orange);
 	g_FpsText.SetScreenPosition({25, 25});
+
+	g_testObj.Load();
 
 	// MFBXManager loader;
 	// loader.Load();

@@ -1,15 +1,19 @@
 ﻿#pragma once
-#include "Core/Entity/JObject.h"
+#include "JBaseMeshComponent.h"
 #include "Core/Graphics/ShaderStructs.h"
 
-class JStaticMeshComponent : public JObject
+class JStaticMeshComponent : public JBaseMeshComponent
 {
 public:
 	JStaticMeshComponent();
 	JStaticMeshComponent(JTextView InName);
-	~JStaticMeshComponent();
+	~JStaticMeshComponent() override;
 
-private:
-	FConstantBuffer_WVP mConstantBufferData;
-	XShader*            mShaderData;
+	void PreRender() override;
+	void Render() override;
+	void PostRender() override;
+
+	ELayerType GetLayerType() override;
+
+protected:
 };

@@ -35,7 +35,6 @@ public:
 
 public:
 #pragma region Core Interface
-	void Update();
 	void Release();
 #pragma endregion
 
@@ -45,6 +44,11 @@ public:
 	void PostRender() override;
 #pragma endregion
 
+public:
+	[[nodiscard]] FORCEINLINE ID3D11Buffer* GetVertexBuffer() const { return mVertexBuffer.Get(); }
+	[[nodiscard]] FORCEINLINE ID3D11Buffer* GetIndexBuffer() const { return mIndexBuffer.Get(); }
+	[[nodiscard]] FORCEINLINE ID3D11Buffer* GetCBuffer() const { return mConstantBuffer.Get(); }
+
 private:
 	void HandleLayout();
 
@@ -52,6 +56,11 @@ private:
 	JWText mShaderFile;
 
 #pragma region Shader
+
+	ComPtr<ID3D11Buffer> mVertexBuffer;
+	ComPtr<ID3D11Buffer> mIndexBuffer;
+	ComPtr<ID3D11Buffer> mConstantBuffer;
+
 	ComPtr<ID3D11VertexShader>   mVertexShader;
 	ComPtr<ID3D11PixelShader>    mPixelShader;
 	ComPtr<ID3D11GeometryShader> mGeometryShader;

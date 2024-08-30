@@ -58,22 +58,25 @@ struct FMaterialExportParams
 
 	union
 	{
-		JText   StringValue;
-		float   FloatValue[16];
-		int32_t IntValue;
+		const char* StringValue;
+		float       FloatValue[16];
+		int32_t     IntValue;
 	};
+
+	FMaterialExportParams()  = default;
+	~FMaterialExportParams() = default;
 };
 
 
-class FbxMaterial
+class CFbxMaterial
 {
 public:
-	FbxMaterial() = default;
+	CFbxMaterial() = default;
 
-	FbxMaterial(JText InName)
+	CFbxMaterial(JText InName)
 		: mName(InName) {}
 
-	~FbxMaterial() = default;
+	~CFbxMaterial() = default;
 
 public:
 	FORCEINLINE void AddParam(const FMaterialExportParams& InParams) { mParams.push_back(InParams); }
@@ -89,3 +92,5 @@ private:
 	std::list<FMaterialExportAttribute*> mAttributes;
 	std::vector<FMaterialExportParams>   mParams;
 };
+
+using FbxMaterialList = std::vector<std::vector<CFbxMaterial*>>;

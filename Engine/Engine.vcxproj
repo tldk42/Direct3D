@@ -90,7 +90,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Core\Entity\Actor\JActor.cpp" />
-    <ClCompile Include="Core\Entity\Actor\JTransformComponent.cpp" />
     <ClCompile Include="Core\Entity\Camera\JCamera.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -176,7 +175,9 @@
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Core\Entity\Camera\MCameraManager.cpp" />
+    <ClCompile Include="Core\Entity\Mesh\JBaseMeshComponent.cpp" />
     <ClCompile Include="Core\Entity\Mesh\JStaticMeshComponent.cpp" />
+    <ClCompile Include="Core\Entity\Transform\JTransformComponent.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CConstantBuffer.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CViewBuffer.cpp" />
@@ -292,6 +293,7 @@
     <ClCompile Include="Core\Utils\Math\Vector.cpp" />
     <ClCompile Include="Core\Utils\Math\Vector4.cpp" />
     <ClCompile Include="Core\Utils\ObjectLoader\FbxMaterial.cpp" />
+    <ClCompile Include="Core\Utils\ObjectLoader\FbxMesh.cpp" />
     <ClCompile Include="Core\Utils\ObjectLoader\FbxObject.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -404,10 +406,11 @@
     <ClInclude Include="common_include.h" />
     <ClInclude Include="common_pch.h" />
     <ClInclude Include="Core\Entity\Actor\JActor.h" />
-    <ClInclude Include="Core\Entity\Actor\JTransformComponent.h" />
     <ClInclude Include="Core\Entity\Camera\JCamera.h" />
     <ClInclude Include="Core\Entity\Camera\MCameraManager.h" />
+    <ClInclude Include="Core\Entity\Mesh\JBaseMeshComponent.h" />
     <ClInclude Include="Core\Entity\Mesh\JStaticMeshComponent.h" />
+    <ClInclude Include="Core\Entity\Transform\JTransformComponent.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CConstantBuffer.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CViewBuffer.h" />
@@ -449,6 +452,7 @@
     <ClInclude Include="Core\Utils\Math\Vector2.h" />
     <ClInclude Include="Core\Utils\Math\Vector4.h" />
     <ClInclude Include="Core\Utils\ObjectLoader\FbxMaterial.h" />
+    <ClInclude Include="Core\Utils\ObjectLoader\FbxMesh.h" />
     <ClInclude Include="Core\Utils\ObjectLoader\FbxUtils.h" />
     <ClInclude Include="Core\Utils\ObjectLoader\FbxObject.h" />
     <ClInclude Include="Core\Utils\Timer.h" />

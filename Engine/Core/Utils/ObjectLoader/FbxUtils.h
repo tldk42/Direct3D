@@ -14,8 +14,8 @@ namespace Fbx::Utils
 		std::vector<FbxLayerElementNormal*>      VertexNormalSets;
 
 		// UnComment When needeed
-		// std::vector<FbxLayerElementMaterial*>    VertexMaterialSets;
-		// std::vector<FbxLayerElementTangent*>     VertexTangentSets;
+		std::vector<FbxLayerElementMaterial*>    VertexMaterialSets;
+		std::vector<FbxLayerElementTangent*>     VertexTangentSets;
 	};
 
 	struct FLayerInfo

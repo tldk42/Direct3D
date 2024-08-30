@@ -1,24 +1,26 @@
 ﻿#include "common_pch.h"
 #include "FbxObject.h"
 
+#include "FbxMaterial.h"
+#include "FbxMesh.h"
 #include "FbxUtils.h"
 #include "Core/Interface/MManagerInterface.h"
 
 
 FbxManager* g_fbx_manager = nullptr;
 
-XFBXObj::XFBXObj(const JText& InName)
+CFBXObj::CFBXObj(const JText& InName)
 	: mFileName(InName),
 	  mFbxImporter(nullptr),
 	  mFbxScene(nullptr) {}
 
 
-XFBXObj::XFBXObj(const JWText& InName)
+CFBXObj::CFBXObj(const JWText& InName)
 	: mFileName(WString2String(InName)),
 	  mFbxImporter(nullptr),
 	  mFbxScene(nullptr) {}
 
-void XFBXObj::Initialize()
+void CFBXObj::Initialize()
 {
 	if (!g_fbx_manager)
 	{
@@ -49,11 +51,11 @@ void XFBXObj::Initialize()
 	// front -> y | right -> x | up -> z (y, z 축이 바뀐 형태) 
 	FbxAxisSystem::MayaZUp.ConvertScene(mFbxScene);
 
-	mFbxImporter->Destroy();
-	mFbxScene->Destroy();
+	// mFbxImporter->Destroy();
+	// mFbxScene->Destroy();
 }
 
-void XFBXObj::Release()
+void CFBXObj::Release()
 {
 	if (mFbxScene)
 		mFbxScene->Destroy();
@@ -63,7 +65,21 @@ void XFBXObj::Release()
 		g_fbx_manager->Destroy();
 }
 
-bool XFBXObj::Load()
+void CFBXObj::Render()
+{
+	int32_t objNum = mDataList.size();
+	for (int32_t i = 0; i < objNum; ++i)
+	{
+		auto mesh = mMeshList[i].get();
+		
+		if (mesh->ClassType == EMeshType::BIPED || mesh->ClassType == EMeshType::BONE)
+			continue;
+
+		
+	}
+}
+
+bool CFBXObj::Load()
 {
 	Initialize();
 
@@ -73,13 +89,13 @@ bool XFBXObj::Load()
 	FMatrix rootMatrix;
 
 	PreProcess_Recursive(root);
-	ParseNode_Recursive(root, rootMatrix);
+	ParseNode_Recursive(root, nullptr, rootMatrix);
 	ParseAnimation();
 
 	return true;
 }
 
-bool XFBXObj::Load(const char* InFilePath)
+bool CFBXObj::Load(const char* InFilePath)
 {
 	mFileName = InFilePath;
 
@@ -88,14 +104,23 @@ bool XFBXObj::Load(const char* InFilePath)
 	return Load();
 }
 
-void XFBXObj::PreProcess_Recursive(FbxNode* InNode)
+bool CFBXObj::Convert()
+{
+	for (int32_t i = 0; i < mDataList.size(); ++i)
+	{
+		auto mesh = mMeshList[i].get();
+		auto data = mDataList[i].get();
+
+		// mesh->MatrixList.resize()
+	}
+}
+
+void CFBXObj::PreProcess_Recursive(FbxNode* InNode)
 {
 	if (!InNode)
 		return;
 
-	FMatrix matrix;
-
-	mFrameMatrix.try_emplace(String2WString(InNode->GetName()), matrix);
+	mFrameMatrix.try_emplace(String2WString(InNode->GetName()), FMatrix::Identity);
 
 	int32_t childNum = InNode->GetChildCount();
 
@@ -105,7 +130,7 @@ void XFBXObj::PreProcess_Recursive(FbxNode* InNode)
 	}
 }
 
-void XFBXObj::ParseNode_Recursive(FbxNode* InNode, const FMatrix& ParentWorldMat)
+void CFBXObj::ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const FMatrix& ParentWorldMat)
 {
 	if (!InNode)
 		return;
@@ -114,18 +139,45 @@ void XFBXObj::ParseNode_Recursive(FbxNode* InNode, const FMatrix& ParentWorldMat
 	if (InNode->GetCamera() || InNode->GetLight())
 		return;
 
-	Ptr<FbxData> data = MakePtr<FbxData>();
-	// Ptr<
+	Ptr<FbxData>  data = MakePtr<FbxData>();
+	Ptr<CFbxMesh> mesh = MakePtr<CFbxMesh>();
 
 	FMatrix nodeWorldMat = ParseTransform(InNode, ParentWorldMat);
 	FMatrix geoMat       = Maya2DXMat(FMat2JMat(GetNodeTransform(InNode)));
 
+	mesh->Name            = InNode->GetName();
+	mesh->ParentMesh      = ParentMesh;
+	mesh->XFormToWorldMat = geoMat;
+	mesh->MaterialRefNum  = -1;
+	mesh->FaceNum         = 0;
+
+	mMeshList.push_back(mesh);
+	mDataList.push_back(data);
+
+	mMeshHash.try_emplace(InNode, mesh.get());
+
+	if (InNode->GetMesh())
+	{
+		mesh->ClassType = EMeshType::GEOM;
+		ParseMesh(InNode, InNode->GetMesh(), mesh.get(), data.get());
+	}
+	else
+	{
+		mesh->ClassType = EMeshType::BONE;
+	}
+
+	const int32_t childCount = InNode->GetChildCount();
+
+	for (int32_t i = 0; i < childCount; ++i)
+	{
+		ParseNode_Recursive(InNode->GetChild(i), mesh.get(), nodeWorldMat);
+	}
 
 }
 
-void XFBXObj::ParseAnimation() {}
+void CFBXObj::ParseAnimation() {}
 
-void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
+void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, FbxData* InFbxData)
 {
 	if (!InMesh)
 		return;
@@ -134,6 +186,7 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 
 	int32_t layerCount = InMesh->GetLayerCount();
 
+	// Normal없으면 Normal 데이터 생성
 	if (layerCount == 0 || !InMesh->GetLayer(0)->GetNormals())
 	{
 		InMesh->InitNormals();
@@ -144,6 +197,7 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 #endif
 	}
 
+	// Tangent(Normal에 orthogonal)한 경사 일듯? 마찬가지로 없으면 생성
 	if (!InMesh->GetLayer(0)->GetTangents())
 	{
 		InMesh->GenerateTangentsData(0);
@@ -152,10 +206,15 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 	FLayerInfo layerInfo;
 	layerInfo.Mesh = InMesh;
 
+	std::vector<CFbxMaterial*> materials;
 
 	std::vector<FbxLayerElementUV*>          vertexUVSets;
 	std::vector<FbxLayerElementVertexColor*> vertexColorSets;
 	std::vector<FbxLayerElementNormal*>      vertexNormalSets;
+	std::vector<FbxLayerElementMaterial*>    vertexMaterialSets;
+	std::vector<FbxLayerElementTangent*>     vertexTangentSets;
+
+	// 레이어별로 Normal, Tangent, Color, UV, 머티리얼(정점에 다수의 텍스처가 매핑 되어있을 경우) 있으면 정보를 넣어놓는다.
 	for (int32_t layerIndex = 0; layerIndex < layerCount; ++layerIndex)
 	{
 		FbxLayer* curLayer = InMesh->GetLayer(layerIndex);
@@ -176,12 +235,47 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 			vertexNormalSets.push_back(normal);
 			layer.VertexNormalSets.push_back(normal);
 		}
+		if (FbxLayerElementTangent* tangent = curLayer->GetTangents())
+		{
+			vertexTangentSets.push_back(tangent);
+			layer.VertexTangentSets.push_back(tangent);
+		}
+		if (FbxLayerElementMaterial* material = curLayer->GetMaterials())
+		{
+			vertexMaterialSets.push_back(material);
+			layer.VertexMaterialSets.push_back(material);
+
+			const int32_t matCount = material->mDirectArray->GetCount();
+
+			if (matCount > 0)
+			{
+				for (int32_t i = 0; i < matCount; ++i)
+				{
+					CFbxMaterial* fbxMat = ParseMaterialInLayer(InMesh, curLayer, i);
+					materials.push_back(fbxMat);
+
+					auto subData = MakePtr<FbxData>();
+					auto subMesh = MakePtr<CFbxMesh>();
+
+					InMeshData->SubMesh.push_back(subMesh);
+					InFbxData->SubMesh.push_back(subData);
+				}
+			}
+			else
+			{
+				CFbxMaterial* fbxMat = ParseMaterialInLayer(InMesh, curLayer, 0);
+				materials.push_back(fbxMat);
+			}
+		}
 
 		layer.Layer = curLayer;
 		layerInfo.LayerList.push_back(layer);
 	}
 
 	mFbxLayerList.push_back(layerInfo);
+
+	InMeshData->MaterialRefNum = mFbxMaterialList.size();
+	mFbxMaterialList.push_back(materials);
 #pragma endregion
 
 	FbxAMatrix vertexMat;
@@ -215,6 +309,28 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 		polygonSize      = InMesh->GetPolygonSize(polygonIndex);
 		polygonFaceCount = polygonSize - 2; // 대부분 1일 것
 
+		int32_t materialIndex = 0;
+		if (!vertexMaterialSets.empty())
+		{
+			switch (vertexMaterialSets[0]->GetMappingMode())
+			{
+			case FbxLayerElement::eByPolygon:
+				switch (vertexMaterialSets[0]->GetReferenceMode())
+				{
+				case FbxLayerElement::eDirect:
+					materialIndex = polygonIndex;
+					break;
+				case FbxLayerElement::eIndex:
+				case FbxLayerElement::eIndexToDirect:
+					materialIndex = vertexMaterialSets[0]->GetIndexArray().GetAt(polygonIndex);
+					break;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+
 
 		for (int32_t triangleIndex = 0; triangleIndex < polygonFaceCount; ++triangleIndex)
 		{
@@ -235,6 +351,9 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 				InMesh->GetTextureUVIndex(polygonIndex, triangleIndex + 1)
 			};
 
+			FTri<FVertexInfo_Simple> tri;
+			tri.SubIndex = materialIndex;
+
 
 			// polygon을 삼각형 단위로 시계방향으로 순회
 			for (int32_t cornerIndex = 0; cornerIndex < 3; ++cornerIndex)
@@ -242,34 +361,42 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 				const int32_t&   dccIndex = cornerIndices[cornerIndex];
 				const FbxVector4 curVert  = vertices[dccIndex];
 
+				FbxVector4 finalPosition;
+				FbxVector4 finalNormal;
+				FbxVector2 finalUV;
+				FbxColor   finalColor(1, 1, 1, 1);
+
 				// Position
-				FbxVector4 finalPosition = vertexMat.MultT(curVert);
+				finalPosition = vertexMat.MultT(curVert);
 
 				// Normal
-				FbxVector4 finalNormal = ReadNormal(InMesh,
-													vertexNormalSets.size(),
-													vertexNormalSets[0],
-													dccIndex,
-													curPolyIndex + vertIndex[cornerIndex]);
+				if (!vertexNormalSets.empty())
+					finalNormal = ReadNormal(InMesh,
+											 vertexNormalSets.size(),
+											 vertexNormalSets[0],
+											 dccIndex,
+											 curPolyIndex + vertIndex[cornerIndex]);
 				finalNormal.mData[3] = 0.f;
 				finalNormal          = normalMat.MultT(finalNormal);
 				finalNormal.Normalize();
 
 				// Texel
-				FbxVector2 finalUV = ReadTexel(InMesh,
-											   vertexUVSets.size(),
-											   vertexUVSets[0],
-											   dccIndex,
-											   uv[cornerIndex]
-											  );
+				if (!vertexUVSets.empty())
+					finalUV = ReadTexel(InMesh,
+										vertexUVSets.size(),
+										vertexUVSets[0],
+										dccIndex,
+										uv[cornerIndex]
+									   );
 
 				// Vertex Color
-				FbxColor finalColor = ReadColor(InMesh,
-												vertexColorSets.size(),
-												vertexColorSets[0],
-												dccIndex,
-												curPolyIndex + vertIndex[cornerIndex]
-											   );
+				if (!vertexColorSets.empty())
+					finalColor = ReadColor(InMesh,
+										   vertexColorSets.size(),
+										   vertexColorSets[0],
+										   dccIndex,
+										   curPolyIndex + vertIndex[cornerIndex]
+										  );
 
 				// 저장될 vertexInfo
 				FVertexInfo_Simple vertex;
@@ -290,14 +417,137 @@ void XFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh)
 					vertex.Color.z = static_cast<float>(finalColor.mBlue);
 					vertex.Color.w = static_cast<float>(finalColor.mAlpha);
 				}
-
+				tri.Vertex[cornerIndex] = vertex;
 			}
+			if (auto subMeshes = InFbxData->SubMesh; !subMeshes.empty())
+			{
+				subMeshes[materialIndex]->TriList.push_back(tri);
+				subMeshes[materialIndex]->FaceCount++;
+			}
+			else
+			{
+				InFbxData->TriList.push_back(tri);
+			}
+			InFbxData->FaceCount++;
 		}
+
 		curPolyIndex += polygonSize;
 	}
 }
 
-FMatrix XFBXObj::ParseTransform(FbxNode* InNode, const FMatrix& ParentWorldMat)
+CFbxMaterial* CFBXObj::ParseMaterialInLayer(FbxMesh* Mesh, FbxLayer* Layer, int32_t MaterialIndex)
+{
+	FbxLayerElementMaterial* layerMaterial = Layer->GetMaterials();
+	FbxSurfaceMaterial*      fbxMaterial   = Mesh->GetNode()->GetMaterial(MaterialIndex);
+
+	CFbxMaterial* material = new CFbxMaterial(fbxMaterial->GetName());
+
+	struct FTextureParam
+	{
+		const char*              FbxPropertyName;
+		const char*              ParamName;
+		int32_t                  PostOperations;
+		EMaterialExportParamFlag ParamFlags;
+	};
+
+	FTextureParam extractionList[] =
+	{
+		{FbxSurfaceMaterial::sTransparentColor, "AlphaTexture", 1, EMaterialExportParamFlag::AlphaChannel},
+		{FbxSurfaceMaterial::sDiffuse, "DiffuseTexture", 0, EMaterialExportParamFlag::DiffuseMap},
+		{FbxSurfaceMaterial::sBump, "NormalMapTexture", 0, EMaterialExportParamFlag::None},
+		{FbxSurfaceMaterial::sNormalMap, "NormalMapTexture", 0, EMaterialExportParamFlag::NormalMap},
+		{FbxSurfaceMaterial::sSpecular, "SpecularMapTexture", 0, EMaterialExportParamFlag::SpecularMap},
+		{FbxSurfaceMaterial::sEmissive, "EmissiveMapTexture", 0, EMaterialExportParamFlag::None},
+		{FbxSurfaceMaterial::sTransparencyFactor, "MaskTexture", 1, EMaterialExportParamFlag::None},
+	};
+
+	for (int32_t i = 0; i < ARRAYSIZE(extractionList); ++i)
+	{
+		const FTextureParam& textureParam = extractionList[i];
+		FbxProperty          property     = fbxMaterial->FindProperty(textureParam.FbxPropertyName);
+
+		if (property.IsValid())
+		{
+			if (ExtractTextures(property, textureParam.ParamName, material, textureParam.ParamFlags))
+			{
+				if (textureParam.PostOperations & 1)
+				{
+					material->SetTransparent(true);
+				}
+			}
+		}
+	}
+	return material;
+}
+
+bool CFBXObj::ExtractTextures(FbxProperty&             Property, const char* ParamName, CFbxMaterial* Material,
+							  EMaterialExportParamFlag ParamFlags)
+{
+	bool          bResult             = false;
+	const int32_t layeredTextureCount = Property.GetSrcObjectCount<FbxLayeredTexture>();
+
+	// 텍스처 레이어가 여러개 일 경우
+	if (layeredTextureCount > 0)
+	{
+		int32_t textureIndex = 0;
+
+		for (int32_t i = 0; i < layeredTextureCount; ++i)
+		{
+			FbxLayeredTexture* fbxLayeredTexture = Property.GetSrcObject<FbxLayeredTexture>(i);
+			int32_t            textureCount      = fbxLayeredTexture->GetSrcObjectCount<FbxTexture>();
+
+			for (int32_t j = 0; j < textureCount; ++j)
+			{
+				if (Property.GetSrcObject<FbxTexture>(j))
+				{
+					const FbxFileTexture* fileTexture = Property.GetSrcObject<FbxFileTexture>(j);
+					AddTextureParam(Material, ParamName, textureIndex++, fileTexture->GetFileName(), ParamFlags);
+					bResult = true;
+				}
+			}
+		}
+	}
+	else
+	{
+		const int32_t textureCount = Property.GetSrcObjectCount<FbxTexture>();
+
+		for (int32_t i = 0; i < textureCount; ++i)
+		{
+			if (Property.GetSrcObject<FbxTexture>(i))
+			{
+				const FbxFileTexture* fileTexture = Property.GetSrcObject<FbxFileTexture>(i);
+				AddTextureParam(Material, ParamName, i, fileTexture->GetFileName(), ParamFlags);
+				bResult = true;
+			}
+		}
+	}
+
+	return bResult;
+}
+
+void CFBXObj::AddTextureParam(CFbxMaterial* Material, const char* ParamName, int32_t Index, const char* FileName,
+							  EMaterialExportParamFlag ParamFlags)
+{
+	FMaterialExportParams OutParam;
+	if (Index == 0)
+	{
+		OutParam.Name = ParamName;
+	}
+	else
+	{
+		OutParam.Name = std::format("{0}{1}", ParamName, Index);
+	}
+
+	OutParam.ParamType      = EMaterialExportParamType::Texture2D;
+	OutParam.StringValue    = FileName;
+	OutParam.bInstanceParam = true;
+	OutParam.Flags          = ParamFlags;
+
+	Material->AddParam(OutParam);
+}
+
+
+FMatrix CFBXObj::ParseTransform(FbxNode* InNode, const FMatrix& ParentWorldMat)
 {
 	// FbxMatrix geoTransform = GetNodeTransform(InNode);
 	// FMatrix geo;

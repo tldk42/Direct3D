@@ -100,5 +100,11 @@ namespace JMath
 		void    Invert(TMatrix& result) const;
 
 		float Determinant() const;
+
+		static FMatrix* D3DXMatrixTranspose(FMatrix* pOut, CONST FMatrix* pM)
+		{
+			*pOut = pM->Transpose();
+			return pOut;
+		}
 	};
 }

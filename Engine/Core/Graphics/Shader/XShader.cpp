@@ -295,9 +295,6 @@ XShader::~XShader()
 	mVertexShaderBuf = nullptr;
 }
 
-void XShader::Update() {}
-
-
 void XShader::Release()
 {
 
