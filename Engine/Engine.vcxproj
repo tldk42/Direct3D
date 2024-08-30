@@ -176,6 +176,7 @@
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Core\Entity\Camera\MCameraManager.cpp" />
+    <ClCompile Include="Core\Entity\Mesh\JStaticMeshComponent.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CConstantBuffer.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.cpp" />
     <ClCompile Include="Core\Graphics\ConstantBuffer\CViewBuffer.cpp" />
@@ -184,7 +185,6 @@
     <ClCompile Include="Core\Graphics\Font\XTKFont.cpp" />
     <ClCompile Include="Core\Graphics\GraphicDevice.cpp" />
     <ClCompile Include="Core\Graphics\Layer\XLayerBase.cpp" />
-    <ClCompile Include="Core\Graphics\Mesh\FBXLoader\MFBXManager.cpp" />
     <ClCompile Include="Core\Graphics\Mesh\XStaticMesh.cpp" />
     <ClCompile Include="Core\Graphics\Renderer.cpp" />
     <ClCompile Include="Core\Graphics\Shader\MShaderManager.cpp" />
@@ -291,7 +291,91 @@
     <ClCompile Include="Core\Utils\Math\Vector2.cpp" />
     <ClCompile Include="Core\Utils\Math\Vector.cpp" />
     <ClCompile Include="Core\Utils\Math\Vector4.cpp" />
-    <ClCompile Include="Core\Utils\ObjectLoader\Loader.cpp" />
+    <ClCompile Include="Core\Utils\ObjectLoader\FbxMaterial.cpp" />
+    <ClCompile Include="Core\Utils\ObjectLoader\FbxObject.cpp">
+      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerListingLocation>../../bin/Debug\JacobEngine\Engine\Intermediate/</AssemblerListingLocation>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</BrowseInformationFile>
+      <CompileAs>Default</CompileAs>
+      <ConformanceMode>true</ConformanceMode>
+      <DiagnosticsFormat>Column</DiagnosticsFormat>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <EnableASAN>false</EnableASAN>
+      <EnableFuzzer>false</EnableFuzzer>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <GenerateModuleDependencies>false</GenerateModuleDependencies>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ModuleDependenciesFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</ModuleDependenciesFile>
+      <ModuleOutputFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</ModuleOutputFile>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <ObjectFileName>../../bin/Debug\JacobEngine\Engine\Intermediate/</ObjectFileName>
+      <CallingConvention>Cdecl</CallingConvention>
+      <ProgramDataBaseFileName>../../bin/Debug\JacobEngine\Engine\Intermediate/vc143.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>common_pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>../../bin/Debug\JacobEngine\Engine\Intermediate/Engine.pch</PrecompiledHeaderOutputFile>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ShowIncludes>false</ShowIncludes>
+      <SourceDependenciesFile>../../bin/Debug\JacobEngine\Engine\Intermediate/</SourceDependenciesFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <SpectreMitigation>false</SpectreMitigation>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TrackerLogDirectory>../../bin/Debug\JacobEngine\Engine\Intermediate/Engine.tlog\</TrackerLogDirectory>
+      <TranslateIncludes>false</TranslateIncludes>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <UseFullPaths>true</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <XMLDocumentationFileName>../../bin/Debug\JacobEngine\Engine\Intermediate/</XMLDocumentationFileName>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <BuildStlModules>false</BuildStlModules>
+      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+      <IncludeInUnityFile>true</IncludeInUnityFile>
+      <UnityFilesDirectory>../../bin/Debug\JacobEngine\Engine\Intermediate/</UnityFilesDirectory>
+      <OrderInUnityFile>100</OrderInUnityFile>
+      <CombineFilesOnlyFromTheSameFolder>false</CombineFilesOnlyFromTheSameFolder>
+      <MinFilesInUnityFile>2</MinFilesInUnityFile>
+      <MaxFilesInUnityFile>0</MaxFilesInUnityFile>
+      <MinUnityFiles>1</MinUnityFiles>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;; _WINSOCK_DEPRECATED_NO_WARNINGS; IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4838</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>
+      ;D:\source\vcpkg\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
+      <LinkCompiled>true</LinkCompiled>
+    </ClCompile>
     <ClCompile Include="Core\Window\Application.cpp" />
     <ClCompile Include="Core\Window\Window.cpp" />
     <ClCompile Include="EntryPoint.cpp">
@@ -323,6 +407,7 @@
     <ClInclude Include="Core\Entity\Actor\JTransformComponent.h" />
     <ClInclude Include="Core\Entity\Camera\JCamera.h" />
     <ClInclude Include="Core\Entity\Camera\MCameraManager.h" />
+    <ClInclude Include="Core\Entity\Mesh\JStaticMeshComponent.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CConstantBuffer.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CProjectionBuffer.h" />
     <ClInclude Include="Core\Graphics\ConstantBuffer\CViewBuffer.h" />
@@ -333,8 +418,6 @@
     <ClInclude Include="Core\Graphics\GraphicDevice.h" />
     <ClInclude Include="Core\Graphics\graphics_common_include.h" />
     <ClInclude Include="Core\Graphics\Layer\XLayerBase.h" />
-    <ClInclude Include="Core\Graphics\Mesh\FBXLoader\FbxUtils.h" />
-    <ClInclude Include="Core\Graphics\Mesh\FBXLoader\MFBXManager.h" />
     <ClInclude Include="Core\Graphics\Mesh\XStaticMesh.h" />
     <ClInclude Include="Core\Graphics\Renderer.h" />
     <ClInclude Include="Core\Graphics\ShaderStructs.h" />
@@ -365,7 +448,9 @@
     <ClInclude Include="Core\Utils\Math\Vector.h" />
     <ClInclude Include="Core\Utils\Math\Vector2.h" />
     <ClInclude Include="Core\Utils\Math\Vector4.h" />
-    <ClInclude Include="Core\Utils\ObjectLoader\Loader.h" />
+    <ClInclude Include="Core\Utils\ObjectLoader\FbxMaterial.h" />
+    <ClInclude Include="Core\Utils\ObjectLoader\FbxUtils.h" />
+    <ClInclude Include="Core\Utils\ObjectLoader\FbxObject.h" />
     <ClInclude Include="Core\Utils\Timer.h" />
     <ClInclude Include="Core\Utils\Utils.h" />
     <ClInclude Include="Core\Window\Application.h" />
@@ -405,6 +490,9 @@
     <Content Include="Vendor\imgui\.github\workflows\static-analysis.yml" />
     <Content Include="Vendor\imgui\.gitignore" />
     <Content Include="Vendor\imgui\LICENSE.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Core\Graphics\Material\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

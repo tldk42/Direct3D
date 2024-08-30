@@ -2,11 +2,6 @@
 
 #include "common_include.h"
 
-struct FVertex
-{
-	
-};
-
 CLASS_PTR(JObject)
 
 class JObject
@@ -20,7 +15,7 @@ public:
 	virtual void BeginPlay() {}
 	virtual void Tick(float DeltaTime) {}
 
-	 JTextView GetName() const { return mName; }
+	[[nodiscard]] FORCEINLINE JTextView GetName() const { return mName; }
 
 	template <class ObjectType, typename... Args>
 	ObjectType* CreateDefaultSubObject(Args... args)
@@ -40,7 +35,7 @@ public:
 	JObject* GetComponentByClass();
 
 protected:
-	JText     mName;
+	JText    mName;
 	uint32_t mPrimaryKey;
 
 	std::vector<JObjectUPtr> mChildObjs;

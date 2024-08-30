@@ -18,66 +18,21 @@ struct FVertexInfo_Simple
 	FVector4 Color;
 };
 
-class JActor
+class JActorS
 {
 public:
-	std::vector<Ptr<struct JMesh>> mMesh;
-	FMatrix                        mWorldMat;
+	std::vector<Ptr<struct JStaticMesh>> mMesh;
+	FMatrix                              mWorldMat;
 
 };
 
-class JMesh : public JActor
+class JStaticMesh : public JActorS
 {
 public:
-	JMesh* mParentMesh;
-	
+	JStaticMesh* mParentMesh;
+
 };
 
-
-struct FMeshData
-{
-	/** 정점 배열 */
-	uint32_t                        VertexCount;
-	ComPtr<ID3D11Buffer>            VertexBuffer;
-	std::vector<FVertexInfo_Simple> VertexArray;
-
-	/** 정점 인덱스 */
-	uint32_t             IndexCount;
-	ComPtr<ID3D11Buffer> IndexBuffer;
-	std::vector<WORD>    IndiceArray;
-
-	ComPtr<ID3D11ShaderResourceView> SRV;
-
-public:
-	/** Vertex Buffer Gen */
-	void Initialize();
-};
-
-inline void FMeshData::Initialize()
-{
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
-
-	bufferDesc.ByteWidth = VertexCount * sizeof(FVertexInfo_Simple); // 버퍼크기
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // 파이프라인에 바인딩될 방법
-	// bufferDesc.Usage          = D3D11_USAGE_DEFAULT;	// 버퍼의 읽기/쓰기 방법 지정
-	// bufferDesc.CPUAccessFlags = 0; // 생성될 버퍼에 CPU가 접근하는 유형 (DX 성능에 매우 중요)
-	// bufferDesc.MiscFlags      = 0; // 추가적인 옵션 플래그
-
-	D3D11_SUBRESOURCE_DATA vertexData;
-	ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
-
-	vertexData.pSysMem = VertexArray.data(); // 초기화 데이터 포인터 (정점 배열의 주소를 넘겨준다)
-	// InitData.SysMemPitch (텍스처 리소스의 한줄의 크기)
-	// InitData.SysMemSlicePitch (3차원 텍스처의 깊이 간격)
-
-	CheckResult(
-				G_Context.GetDevice()->CreateBuffer(
-													&bufferDesc,
-													&vertexData,
-													VertexBuffer.GetAddressOf()
-												   ));
-}
 
 template <typename T>
 struct FTri
