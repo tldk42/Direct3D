@@ -71,11 +71,11 @@ void CFBXObj::Render()
 	for (int32_t i = 0; i < objNum; ++i)
 	{
 		auto mesh = mMeshList[i].get();
-		
+
 		if (mesh->ClassType == EMeshType::BIPED || mesh->ClassType == EMeshType::BONE)
 			continue;
 
-		
+
 	}
 }
 
@@ -91,6 +91,8 @@ bool CFBXObj::Load()
 	PreProcess_Recursive(root);
 	ParseNode_Recursive(root, nullptr, rootMatrix);
 	ParseAnimation();
+
+	Convert();
 
 	return true;
 }
@@ -112,7 +114,74 @@ bool CFBXObj::Convert()
 		auto data = mDataList[i].get();
 
 		// mesh->MatrixList.resize()
+
+		mesh->Index   = i;
+		mesh->FaceNum = data->FaceCount;
+		mesh->Name    = mesh->Name;
+
+		if (mesh->ParentMesh)
+		{
+			mesh->ParentMesh->ChildMesh.push_back(mesh);
+		}
+
+		if (mesh->ClassType == EMeshType::GEOM)
+		{
+			auto pMtrl = mFbxMaterialList[mesh->MaterialRefNum];
+			if (mesh->FaceNum > 0 && pMtrl.empty() == false)
+			{
+				if (pMtrl.size() == 1)
+				{
+					CFbxMaterial* subMaterial = pMtrl[0];
+					// 2번 인자값=-1 이면 Face Count(_countof )를 계산하지 않는다.
+					data->SetUniqueBuffer(data->TriList, -1, 0);
+					mesh->DiffuseTex = -1;
+
+					if (subMaterial->mParams.size() > 0)
+					{
+						JWText name;
+						name = String2WString(subMaterial->mParams[0].StringValue);
+
+						// mesh->DiffuseTex = I_Texture.Add(
+						// 								 g_pd3dDevice,
+						// 								 name.c_str(),
+						// 								 m_szDirName.c_str());
+					}
+					mNumVertex += data->VertexArray.size();
+					mNumIndex += data->IndexArray.size();
+				}
+				else
+				{
+					int iAddCount = 0;
+					for (int iSub = 0; iSub < pMtrl.size(); iSub++)
+					{
+						auto pSubMesh = mesh->SubMesh[iSub].get();
+						auto pSubData = data->SubMesh[iSub].get();
+
+						// 2번 인자값=-1 이면 Face Count(_countof )를 계산하지 않는다.
+						pSubData->SetUniqueBuffer(pSubData->TriList, -1, 0);
+						pSubMesh->DiffuseTex = -1;
+
+						CFbxMaterial* pSubMtrl = pMtrl[iSub];
+						if (pSubMtrl->mParams.size() > 0)
+						{
+							JWText name;
+							name = String2WString(pSubMtrl->mParams[0].StringValue);
+							// pSubMesh->DiffuseTex = I_Texture.Add(
+							// 									 g_pd3dDevice,
+							// 									 name.c_str(),
+							// 									 m_szDirName.c_str());
+						}
+						mNumVertex += pSubData->VertexArray.size();
+						mNumIndex += pSubData->IndexArray.size();
+
+						pSubData->FaceCount = pSubData->IndexArray.size() / 3;
+						pSubMesh->FaceNum   = pSubData->IndexArray.size() / 3;
+					}
+				}
+			}
+		}
 	}
+	return true;
 }
 
 void CFBXObj::PreProcess_Recursive(FbxNode* InNode)
@@ -247,7 +316,7 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, 
 
 			const int32_t matCount = material->mDirectArray->GetCount();
 
-			if (matCount > 0)
+			if (matCount > 1)
 			{
 				for (int32_t i = 0; i < matCount; ++i)
 				{
@@ -278,6 +347,8 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, 
 	mFbxMaterialList.push_back(materials);
 #pragma endregion
 
+	InMeshData->AddInfluence(InMeshData->Name, FMatrix::Identity);
+
 	FbxAMatrix vertexMat;
 	FbxAMatrix normalMat;
 	{
@@ -303,6 +374,7 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, 
 	int32_t       polygonFaceCount;									// triangle -> 1| square -> 2 (triangle * 2)
 	int32_t       curPolyIndex = 0;
 	FbxVector4*   vertices     = InMesh->GetControlPoints();			// 모든 정점 좌표 반환(메시의 로컬 좌표계)
+
 
 	for (int32_t polygonIndex = 0; polygonIndex < polygonCount; ++polygonIndex)
 	{
@@ -419,7 +491,7 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, 
 				}
 				tri.Vertex[cornerIndex] = vertex;
 			}
-			if (auto subMeshes = InFbxData->SubMesh; !subMeshes.empty())
+			if (auto& subMeshes = InFbxData->SubMesh; !subMeshes.empty())
 			{
 				subMeshes[materialIndex]->TriList.push_back(tri);
 				subMeshes[materialIndex]->FaceCount++;

@@ -3,12 +3,28 @@
 #include "Core/Graphics/graphics_common_include.h"
 #include "Core/Utils/Math/Vector4.h"
 
-struct FConstantBuffer_WVP
+namespace CBuffer
 {
-	FMatrix Model;
-	FMatrix View;
-	FMatrix Projection;
-};
+	/**
+	 * Model, View, Projection
+	 */
+	struct Space
+	{
+		FMatrix Model;
+		FMatrix View;
+		FMatrix Projection;
+	};
+
+	struct Light
+	{
+		FVector4 LightPos;
+	};
+
+	struct Camera
+	{
+		FVector4 CamPos;
+	};
+}
 
 struct FVertexInfo_Simple
 {
@@ -49,6 +65,20 @@ public:
 };
 
 template <typename T>
+struct IsTriangleSame
+{
+	FTri<T> Tri;
+
+	IsTriangleSame(FTri<T> Data)
+		: Tri(Data) {}
+
+	bool operator()(FTri<T>& Value)
+	{
+		return Value.SubIndex == Tri.SubIndex;
+	}
+};
+
+template <typename T>
 struct JData
 {
 	int32_t                 FaceCount = 0;
@@ -59,6 +89,30 @@ struct JData
 	std::vector<JData*>     ChildMesh;
 	T*                      DrawVertex = nullptr;
 	FMatrix                 InverseMatrix;
+
+	int32_t SetUniqueBuffer(std::vector<FTri<T>>& TriList, int32_t Material, int32_t StartTri)
+	{
+		int32_t faceNum = TriList.size();
+
+		VertexArray.reserve(faceNum * 3);
+		IndexArray.reserve(faceNum * 3);
+
+		FTri<T> triSame(Material);
+		if (Material >= 0)
+		{
+			faceNum = std::count_if(TriList.begin(), TriList.end(), IsTriangleSame<T>(triSame));
+		}
+
+		for (int32_t face = 0; face < faceNum; ++face)
+		{
+			for (int32_t i = 0; i < 3; ++i)
+			{
+				VertexArray.push_back(TriList[StartTri + face].Vertex[i]);
+				IndexArray.push_back(VertexArray.size() - 1);
+			}
+		}
+		return faceNum;
+	}
 };
 
 typedef JData<FVertexInfo_Simple> FbxData;

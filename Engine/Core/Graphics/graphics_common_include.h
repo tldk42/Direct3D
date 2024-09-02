@@ -20,4 +20,4 @@ using Matrix = XMMATRIX;
 
 
 CLASS_PTR(CWorldBuffer)
-CLASS_PTR(XShader)
+CLASS_PTR(JDXObject)

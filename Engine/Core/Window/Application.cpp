@@ -76,9 +76,6 @@ void Application::Initialize()
 	g_FpsText.SetScreenPosition({25, 25});
 
 	g_testObj.Load();
-
-	// MFBXManager loader;
-	// loader.Load();
 }
 
 void Application::Update(float DeltaTime)

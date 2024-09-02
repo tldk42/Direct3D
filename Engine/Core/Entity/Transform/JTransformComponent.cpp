@@ -1,7 +1,7 @@
 ﻿#include "common_pch.h"
 #include "JTransformComponent.h"
 
-#include "Core/Graphics/Shader/XShader.h"
+#include "Core/Graphics/Shader/JDXObject.h"
 
 void JTransformComponent::UpdateConstantBuffer()
 {
@@ -23,4 +23,29 @@ void JTransformComponent::UpdateConstantBuffer()
 																 0,
 																 0);
 	}
+}
+
+void JTransformComponent::PreRender()
+{
+	mShaderData->PreRender();
+}
+
+void JTransformComponent::Render()
+{
+	PreRender();
+	
+	mShaderData->Render();
+	
+	PostRender();
+}
+
+void JTransformComponent::PostRender()
+{
+	UpdateConstantBuffer();
+	mShaderData->PostRender();
+}
+
+void JTransformComponent::SetMesh(CFBXObj* InFbxObj)
+{
+	
 }

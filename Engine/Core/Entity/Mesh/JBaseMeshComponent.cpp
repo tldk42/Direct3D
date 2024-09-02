@@ -1,7 +1,7 @@
 ﻿#include "common_pch.h"
 #include "JBaseMeshComponent.h"
 
-#include "Core/Graphics/Shader/XShader.h"
+#include "Core/Graphics/Shader/JDXObject.h"
 #include "Core/Utils/ObjectLoader/FbxMesh.h"
 
 JBaseMeshComponent::JBaseMeshComponent() {}
@@ -42,7 +42,10 @@ void JBaseMeshComponent::Render()
 }
 
 void       JBaseMeshComponent::PostRender() {}
-ELayerType JBaseMeshComponent::GetLayerType() {}
+ELayerType JBaseMeshComponent::GetLayerType()
+{
+	return ELayerType::End;
+}
 
 void JBaseMeshComponent::SetBoneMatrices(CFbxMesh* InMeshData, CFBXObj* AnimMesh)
 {

@@ -34,6 +34,13 @@ struct CFbxMesh
 	std::vector<Ptr<CFbxMesh>> SubMesh;
 	std::vector<CFbxMesh*>     ChildMesh;
 
+	int32_t DiffuseTex;
+
+	std::vector<JText>                 InfluenceNames;
+	std::unordered_map<JText, FMatrix> BindPoseMap;
+
 	CFbxMesh()  = default;
 	~CFbxMesh() = default;
+
+	void AddInfluence(const JText& InText, const FMatrix& InMatrix);
 };

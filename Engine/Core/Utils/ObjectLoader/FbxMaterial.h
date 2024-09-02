@@ -84,7 +84,7 @@ public:
 	FORCEINLINE bool IsTransparent() const { return bTransparent; }
 	FORCEINLINE void SetTransparent(bool bEnableTransparent) { bTransparent = bEnableTransparent; }
 
-private:
+public:
 	JText mName;
 
 	bool bTransparent = false;

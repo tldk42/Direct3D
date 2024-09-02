@@ -6,19 +6,15 @@ JStaticMeshComponent::JStaticMeshComponent(JTextView InName) {}
 JStaticMeshComponent::~JStaticMeshComponent() {}
 
 void JStaticMeshComponent::PreRender()
-{
-
-}
+{}
 
 void JStaticMeshComponent::Render()
-{
-	
-
-
-}
+{}
 
 void JStaticMeshComponent::PostRender() {}
 
 
-
-ELayerType JStaticMeshComponent::GetLayerType() {}
+ELayerType JStaticMeshComponent::GetLayerType()
+{
+	return ELayerType::End;
+}

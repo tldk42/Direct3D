@@ -61,6 +61,9 @@ private:
 	std::vector<FLayerInfo>              mFbxLayerList;
 	std::vector<Ptr<JData<JStaticMesh>>> mFbxMeshData;
 
+	uint32_t mNumVertex;
+	uint32_t mNumIndex;
+
 	MeshHash        mMeshHash;
 	FbxMaterialList mFbxMaterialList;
 };

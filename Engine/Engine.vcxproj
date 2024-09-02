@@ -189,7 +189,7 @@
     <ClCompile Include="Core\Graphics\Mesh\XStaticMesh.cpp" />
     <ClCompile Include="Core\Graphics\Renderer.cpp" />
     <ClCompile Include="Core\Graphics\Shader\MShaderManager.cpp" />
-    <ClCompile Include="Core\Graphics\Shader\XShader.cpp" />
+    <ClCompile Include="Core\Graphics\Shader\JDXObject.cpp" />
     <ClCompile Include="Core\Graphics\State\SamplerState.cpp" />
     <ClCompile Include="Core\Graphics\Texture\MTextureManager.cpp" />
     <ClCompile Include="Core\Graphics\Texture\XTexture2D.cpp" />
@@ -426,7 +426,7 @@
     <ClInclude Include="Core\Graphics\ShaderStructs.h" />
     <ClInclude Include="Core\Graphics\Shader\InputLayouts.h" />
     <ClInclude Include="Core\Graphics\Shader\MShaderManager.h" />
-    <ClInclude Include="Core\Graphics\Shader\XShader.h" />
+    <ClInclude Include="Core\Graphics\Shader\JDXObject.h" />
     <ClInclude Include="Core\Graphics\State\SamplerState.h" />
     <ClInclude Include="Core\Graphics\Texture\MTextureManager.h" />
     <ClInclude Include="Core\Graphics\Texture\XTexture2D.h" />
@@ -479,6 +479,7 @@
   <ItemGroup>
     <Content Include="Core\Interface\ICoreInterface.h" />
     <Content Include="Shader\alphablend.hlsl" />
+    <Content Include="Shader\DiffuseLight.hlsl" />
     <Content Include="Shader\ShaderNote.md" />
     <Content Include="Shader\SimpleShape.hlsl" />
     <Content Include="vcpkg.json" />
