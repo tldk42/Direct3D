@@ -1,65 +1,52 @@
-cbuffer WorldMatrixBuffer : register(b0)
-{
-matrix world;
-}
-
-cbuffer ViewProjectionBuffer : register(b1)
-{
-matrix view;
-}
-
-cbuffer ProjectionBuffer : register(b2)
-{
-matrix projection;
-}
-
-struct VS_INPUT
-{
-float3 Pos : POSITION;
-float4 Col : COLOR;
-float2 Tex : TEX;
-};
-
-struct VS_OUTPUT
-{
-float4 Pos : SV_Position;
-float4 Col : COLOR;
-float2 Tex : TEXCOORD0;
-};
-
-VS_OUTPUT vs(VS_INPUT input)
-{
-VS_OUTPUT output;
-
-output.Pos = float4(input.Pos,  1.f);
-
-output.Pos = mul(output.Pos, world);
-output.Pos = mul(output.Pos, view);
-output.Pos = mul(output.Pos, projection);
-
-output.Tex = input.Tex;
-output.Col = input.Col;
-
-return output;
-}
-
-
-Texture2D shaderTexture : register(t0);
+Texture2D    shaderTexture : register(t0);
 SamplerState SampleType : register(s0);
 
-float4 ps(VS_OUTPUT input) : SV_TARGET
+cbuffer ModelViewProjectionConstantBuffer : register(b0)
 {
-    float4 texColor;
-    float4 overlayColor = input.Col;
-	
-    texColor = shaderTexture.Sample(SampleType, input.Tex);
-    
-    texColor.a *= input.Col.a;
-    
-    // if (texColor.a <= .4f)
-    // {
-    //     discard;
-    // }    
+	matrix Model;
+	matrix View;
+	matrix Projection;
+};
 
-	return texColor;
+cbuffer AnimMatricesConstantBuffer : register(b1)
+{
+	float4x4 BoneWorld[255];
+}
+
+struct VertexShaderInput
+{
+	float3 Pos : POSITION;
+	float3 Normal : NORMAL;
+	float4 Color : COLOR;
+	float2 Tex : TEXCOORD0;
+};
+
+struct PixelShaderInput
+{
+	float4 Pos : SV_Position;
+	float3 Normal : NORMAL;
+	float4 Color : COLOR0;
+	float2 Tex : TEXCOORD0;
+};
+
+PixelShaderInput VS(VertexShaderInput Input)
+{
+	PixelShaderInput output;
+	output.Pos = float4(Input.Pos, 1.f);
+
+	output.Pos = mul(output.Pos, Model);
+	output.Pos = mul(output.Pos, View);
+	output.Pos = mul(output.Pos, Projection);
+
+	output.Normal = Input.Normal;
+	output.Color  = Input.Color;
+	output.Tex    = Input.Tex;
+
+	return output;
+}
+
+
+float4 PS(PixelShaderInput Input) : SV_TARGET
+{
+	return shaderTexture.Sample(SampleType, Input.Tex);
 }

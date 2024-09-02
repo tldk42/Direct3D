@@ -4,6 +4,7 @@
 #include "Core/Interface/IRenderable.h"
 #include "Core/Utils/Math/TMatrix.h"
 
+struct CFbxMesh;
 class CFBXObj;
 /**
  * 위치를 가지는 컴포넌트
@@ -12,15 +13,19 @@ class CFBXObj;
 class JTransformComponent : public JObject, public IRenderable
 {
 public:
-	virtual void UpdateConstantBuffer();
+	JTransformComponent();
 
 public:
-	void PreRender() override;
-	void Render() override;
-	void PostRender() override;
+	void         PreRender() override;
+	void         Render() override;
+	void         PostRender() override;
+	ELayerType   GetLayerType() override;
+	virtual void SetMesh(CFBXObj* InFbxObj);
+
+public:
+	virtual void UpdateConstantBuffer();
 
 private:
-	virtual void SetMesh(CFBXObj* InFbxObj);
 
 protected:
 	JTransformComponent* mParentTransformComp;
@@ -34,4 +39,10 @@ protected:
 	FMatrix mWorldTransformMat;
 	FMatrix mWorldRotationMat;
 	FMatrix mWorldScaleMat;
+
+	std::vector<Ptr<FbxData>>  mDataList;
+	std::vector<Ptr<CFbxMesh>> mMeshList;
+
+	ComPtr<ID3D11Buffer>             mBoneBuffer;
+	ComPtr<ID3D11ShaderResourceView> mBoneBufferSRV;
 };

@@ -478,6 +478,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Core\Interface\ICoreInterface.h" />
+    <Content Include="README.md" />
     <Content Include="Shader\alphablend.hlsl" />
     <Content Include="Shader\DiffuseLight.hlsl" />
     <Content Include="Shader\ShaderNote.md" />

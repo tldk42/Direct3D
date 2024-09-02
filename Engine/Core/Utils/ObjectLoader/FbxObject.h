@@ -37,6 +37,8 @@ public:
 	bool Convert();
 
 private:
+	void ParseNode(FbxNode* InNode, FbxNodeAttribute::EType NodeAttribute);
+	
 	void          PreProcess_Recursive(FbxNode* InNode);
 	void          ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const FMatrix& ParentWorldMat);
 	void          ParseAnimation();
@@ -48,7 +50,7 @@ private:
 						 EMaterialExportParamFlag ParamFlags);
 	FMatrix ParseTransform(FbxNode* InNode, const FMatrix& ParentWorldMat);
 
-private:
+public:
 	JText mFileName;
 
 	FbxImporter* mFbxImporter;

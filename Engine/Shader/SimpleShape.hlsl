@@ -1,56 +1,47 @@
-﻿// A constant buffer that stores the three basic column-major matrices for composing geometry.
+﻿Texture2D    shaderTexture : register(t0);
+SamplerState SampleType : register(s0);
+
 cbuffer ModelViewProjectionConstantBuffer : register(b0)
 {
-	matrix model;
-	matrix view;
-	matrix projection;
+	matrix Model;
+	matrix View;
+	matrix Projection;
 };
 
-// Per-vertex data used as input to the vertex shader.
 struct VertexShaderInput
 {
-	float3 pos : POSITION;
-	float3 normal : NORMAL;
-	float2 uv : TEXCOORD0;
+	float3 Pos : POSITION;
+	float3 Normal : NORMAL;
+	float4 Color : COLOR;
+	float2 Tex : TEXCOORD0;
 };
 
-// Per-pixel color data passed through the pixel shader.
 struct PixelShaderInput
 {
-	float4 pos : SV_POSITION;
-	float3 normal : NORMAL;
-	float2 uv : TEXCOORD0;
+	float4 Pos : SV_Position;
+	float3 Normal : NORMAL;
+	float4 Color : COLOR0;
+	float2 Tex : TEXCOORD0;
 };
 
-// Simple shader to do vertex processing on the GPU.
-PixelShaderInput vs(VertexShaderInput input)
+PixelShaderInput VS(VertexShaderInput Input)
 {
 	PixelShaderInput output;
-	float4 pos = float4(input.pos, 1.0f);
+	output.Pos = float4(Input.Pos, 1.f);
 
-	// Transform the vertex position into projected space.
-	pos = mul(pos, model);
-	pos = mul(pos, view);
-	pos = mul(pos, projection);
-	output.pos = pos;
+	output.Pos = mul(output.Pos, Model);
+	output.Pos = mul(output.Pos, View);
+	output.Pos = mul(output.Pos, Projection);
 
-	// Pass the texCoods through without modification.
-	output.uv = input.uv;
+	output.Normal = Input.Normal;
+	output.Color  = Input.Color;
+	output.Tex    = Input.Tex;
 
 	return output;
 }
 
-Texture2D shaderTexture;
-SamplerState SampleType;
 
-// A pass-through function for the (interpolated) color data.
-float4 ps(PixelShaderInput input) : SV_TARGET
+float4 PS(PixelShaderInput Input) : SV_TARGET
 {
-	float4 textureColor;
-
-	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-	textureColor = shaderTexture.Sample(SampleType, input.uv);
-
-	return textureColor;
+	return shaderTexture.Sample(SampleType, Input.Tex);
 }
-

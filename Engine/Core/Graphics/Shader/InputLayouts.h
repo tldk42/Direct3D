@@ -100,6 +100,7 @@ namespace InputLayout
 	constexpr D3D11_INPUT_ELEMENT_DESC ALPHABLEND_LAYOUT[] =
 	{
 		Position,
+		Normal,
 		Color,
 		Texture
 	};

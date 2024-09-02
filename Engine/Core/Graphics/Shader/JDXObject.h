@@ -27,6 +27,14 @@
 [[nodiscard]] inline HRESULT CompileShader(const WCHAR* FileName, LPCSTR        EntryPoint,
 										   LPCSTR       ShaderModel, ID3DBlob** OutBlob);
 
+inline void CreateVertexBuffer(void*                InVertices, uint32_t InVertexNum, uint32_t InSize,
+							   _Out_ ID3D11Buffer** OutVertexBuffer);
+
+inline void CreateIndexBuffer(void* InIndices, uint32_t InIndexNum, uint32_t InSize, _Out_ ID3D11Buffer** OutIndexBuffer);
+
+inline void CreateConstantBuffer(void*                InData, uint32_t InIndexNum, uint32_t InSize,
+								 _Out_ ID3D11Buffer** OutConstantBuffer);
+
 class JDXObject : public IRenderable
 {
 public:
@@ -37,9 +45,10 @@ public:
 	void Release();
 
 #pragma region Render Interface
-	void PreRender() override;
-	void Render() override;
-	void PostRender() override;
+	void       PreRender() override;
+	void       Render() override;
+	void       PostRender() override;
+	ELayerType GetLayerType() override;
 #pragma endregion
 
 public:

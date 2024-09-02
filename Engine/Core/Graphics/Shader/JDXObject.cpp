@@ -237,6 +237,72 @@ HRESULT CompileShader(const WCHAR* FileName, LPCSTR EntryPoint, LPCSTR ShaderMod
 	return result;
 }
 
+void CreateVertexBuffer(void* InVertices, uint32_t InVertexNum, uint32_t InSize, ID3D11Buffer** OutVertexBuffer)
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	{
+		bufferDesc.ByteWidth      = InVertexNum * InSize; // 버퍼크기
+		bufferDesc.Usage          = D3D11_USAGE_DEFAULT;	// 버퍼의 읽기/쓰기 방법 지정
+		bufferDesc.BindFlags      = D3D11_BIND_VERTEX_BUFFER; // 파이프라인에 바인딩될 방법
+		bufferDesc.CPUAccessFlags = 0; // 생성될 버퍼에 CPU가 접근하는 유형 (DX 성능에 매우 중요)
+		bufferDesc.MiscFlags      = 0; // 추가적인 옵션 플래그
+	}
+
+	D3D11_SUBRESOURCE_DATA vertexData;
+	{
+		vertexData.pSysMem = InVertices; // 초기화 데이터 포인터 (정점 배열의 주소를 넘겨준다)
+		// InitData.SysMemPitch (텍스처 리소스의 한줄의 크기)
+		// InitData.SysMemSlicePitch (3차원 텍스처의 깊이 간격)
+	}
+
+	CheckResult(
+				G_Context.GetDevice()->CreateBuffer(
+													&bufferDesc,
+													&vertexData,
+													OutVertexBuffer
+												   ));
+}
+
+void CreateIndexBuffer(void* InIndices, uint32_t InIndexNum, uint32_t InSize, ID3D11Buffer** OutIndexBuffer)
+{
+	D3D11_BUFFER_DESC bufferDesc;
+	{
+		bufferDesc.ByteWidth      = InIndexNum * InSize;
+		bufferDesc.Usage          = D3D11_USAGE_DEFAULT;
+		bufferDesc.BindFlags      = D3D11_BIND_INDEX_BUFFER;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.MiscFlags      = 0;
+	}
+
+	D3D11_SUBRESOURCE_DATA indexData;
+	ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+	indexData.pSysMem = InIndices;
+
+	CheckResult(
+				G_Context.GetDevice()->CreateBuffer(
+													&bufferDesc,
+													&indexData,
+													OutIndexBuffer
+												   ));
+}
+
+void CreateConstantBuffer(void* InData, uint32_t InIndexNum, uint32_t InSize, ID3D11Buffer** OutConstantBuffer)
+{
+	D3D11_BUFFER_DESC constantBufferDesc{};
+	{
+		constantBufferDesc.ByteWidth      = InIndexNum * InSize;
+		constantBufferDesc.Usage          = D3D11_USAGE_DEFAULT;
+		constantBufferDesc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+		constantBufferDesc.CPUAccessFlags = 0;
+	}
+
+	D3D11_SUBRESOURCE_DATA constantData;
+	ZeroMemory(&constantData, sizeof(D3D11_SUBRESOURCE_DATA));
+	constantData.pSysMem = InData;
+
+	CheckResult(G_Context.GetDevice()->CreateBuffer(&constantBufferDesc, &constantData, OutConstantBuffer));
+}
+
 JDXObject::JDXObject(const JWText& InShaderFile, LPCSTR VSEntryPoint, LPCSTR PSEntryPoint)
 	: mShaderFile(InShaderFile)
 {
@@ -257,11 +323,19 @@ JDXObject::JDXObject(const JWText& InShaderFile, LPCSTR VSEntryPoint, LPCSTR PSE
 								PSEntryPoint
 							   ));
 
+
 	mVertexSize = sizeof(FVertexInfo_Simple);
 	mIndexSize  = sizeof(DWORD);
 	// mVertexNum = 
 	// mIndexNum = 
 	HandleLayout();
+
+	void** vertexData = nullptr;
+	vertexData = (void**)
+
+	CreateVertexBuffer();
+	CreateIndexBuffer();
+	CreateConstantBuffer();
 }
 
 
@@ -293,6 +367,7 @@ void JDXObject::PreRender()
 
 	deviceContext->IASetVertexBuffers(0, 1, mVertexBuffer.GetAddressOf(), &mVertexSize, &offset);
 	deviceContext->IASetIndexBuffer(mIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	
 	deviceContext->VSSetConstantBuffers(0, 1, mConstantBuffer.GetAddressOf());
 	deviceContext->PSSetConstantBuffers(0, 1, mConstantBuffer.GetAddressOf());
 
@@ -320,6 +395,11 @@ void JDXObject::PostRender()
 	{
 		deviceContext->Draw(mVertexNum, 0);
 	}
+}
+
+ELayerType JDXObject::GetLayerType()
+{
+	return ELayerType::End;
 }
 
 void JDXObject::SetVertexShader(JWTextView InFile, LPCSTR FuncName)

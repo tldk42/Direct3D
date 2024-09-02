@@ -88,6 +88,9 @@ bool CFBXObj::Load()
 
 	FMatrix rootMatrix;
 
+	ParseNode(root, FbxNodeAttribute::eSkeleton);
+	ParseNode(root, FbxNodeAttribute::eMesh);
+
 	PreProcess_Recursive(root);
 	ParseNode_Recursive(root, nullptr, rootMatrix);
 	ParseAnimation();
@@ -184,6 +187,29 @@ bool CFBXObj::Convert()
 	return true;
 }
 
+void CFBXObj::ParseNode(FbxNode* InNode, FbxNodeAttribute::EType NodeAttribute)
+{
+	if (!InNode)
+		return;
+	FbxNodeAttribute* attribute = InNode->GetNodeAttribute();
+	if (!attribute || attribute->GetAttributeType() != NodeAttribute)
+		return;
+
+
+	Ptr<FbxData>  data = MakePtr<FbxData>();
+	Ptr<CFbxMesh> mesh = MakePtr<CFbxMesh>();
+
+	switch (NodeAttribute)
+	{
+	case FbxNodeAttribute::eSkeleton:
+		break;
+	case FbxNodeAttribute::eMesh:
+		break;
+	default:
+		break;
+	}
+}
+
 void CFBXObj::PreProcess_Recursive(FbxNode* InNode)
 {
 	if (!InNode)
@@ -212,7 +238,8 @@ void CFBXObj::ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const F
 	Ptr<CFbxMesh> mesh = MakePtr<CFbxMesh>();
 
 	FMatrix nodeWorldMat = ParseTransform(InNode, ParentWorldMat);
-	FMatrix geoMat       = Maya2DXMat(FMat2JMat(GetNodeTransform(InNode)));
+	// Fbx Transform -> FTransform(현재 엔진의 행렬로 변환) -> DirectX Axis 변환
+	FMatrix geoMat = Maya2DXMat(FMat2JMat(GetNodeTransform(InNode)));
 
 	mesh->Name            = InNode->GetName();
 	mesh->ParentMesh      = ParentMesh;
@@ -225,6 +252,7 @@ void CFBXObj::ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const F
 
 	mMeshHash.try_emplace(InNode, mesh.get());
 
+	// Skeletal ? or Static
 	if (InNode->GetMesh())
 	{
 		mesh->ClassType = EMeshType::GEOM;
@@ -234,10 +262,8 @@ void CFBXObj::ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const F
 	{
 		mesh->ClassType = EMeshType::BONE;
 	}
-
-	const int32_t childCount = InNode->GetChildCount();
-
-	for (int32_t i = 0; i < childCount; ++i)
+	
+	for (int32_t i = 0; i < InNode->GetChildCount(); ++i)
 	{
 		ParseNode_Recursive(InNode->GetChild(i), mesh.get(), nodeWorldMat);
 	}

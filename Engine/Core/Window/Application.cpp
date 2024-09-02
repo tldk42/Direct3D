@@ -1,6 +1,7 @@
 ﻿#include "common_pch.h"
 #include "Application.h"
 #include "Core/Entity/Camera/JCamera.h"
+#include "Core/Entity/Transform/JTransformComponent.h"
 #include "Core/Graphics/GraphicDevice.h"
 #include "Core/Graphics/Font/XDWrite.h"
 #include "Core/Graphics/Viewport/MViewportManager.h"
@@ -51,6 +52,7 @@ void Application::Run()
 	}
 
 	Application::Release();
+
 }
 
 void Application::Initialize()
@@ -76,6 +78,8 @@ void Application::Initialize()
 	g_FpsText.SetScreenPosition({25, 25});
 
 	g_testObj.Load();
+	g_sampleObj = MakeUPtr<JTransformComponent>();
+	g_sampleObj->SetMesh(&g_testObj);
 }
 
 void Application::Update(float DeltaTime)
