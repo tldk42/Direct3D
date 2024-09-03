@@ -24,7 +24,7 @@ void XLayerBase::Render() const
 
 void XLayerBase::AddLayerObject(IRenderable* RenderableObj)
 {
-	if (RenderableObj->GetLayerType() == mLayerType)
+	if (RenderableObj)
 	{
 		mRenderObjects.emplace_back(RenderableObj);
 	}
@@ -37,7 +37,8 @@ void XLayerBase::AddLayerObject(IRenderable* RenderableObj)
 void XLayerBase::DeleteLayerObject(IRenderable* RenderableObj)
 {
 	auto it = std::ranges::find(
-								mRenderObjects, RenderableObj);
+								mRenderObjects,
+								RenderableObj);
 	if (it != mRenderObjects.end())
 	{
 		mRenderObjects.erase(it);

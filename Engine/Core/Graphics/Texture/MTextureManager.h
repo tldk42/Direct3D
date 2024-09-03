@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include "XTexture2D.h"
+#include "JTexture2D.h"
 #include "Core/Manager/Manager_Base.h"
 
 #define Manager_Texture MTextureManager::Get()
 
-class MTextureManager : public Manager_Base<XTexture2D, MTextureManager>
+class MTextureManager : public Manager_Base<JTexture2D, MTextureManager>
 {
 public:
 #pragma region Singleton Boilerplate

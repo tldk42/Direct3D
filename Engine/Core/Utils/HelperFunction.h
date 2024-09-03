@@ -8,7 +8,7 @@ inline std::string ParseFile(const std::string& InFile)
 		// If so, return the file name only
 		if (filePath.has_filename())
 		{
-			return filePath.filename().string();
+			return filePath.stem().string();
 		}
 		//raise an error or return an empty string
 		return std::string();
@@ -28,7 +28,7 @@ inline std::wstring ParseFile(const std::wstring& InFile)
 		// If so, return the file name only
 		if (filePath.has_filename())
 		{
-			return filePath.filename().wstring();
+			return filePath.stem().wstring();
 		}
 		//raise an error or return an empty string
 		return std::wstring();

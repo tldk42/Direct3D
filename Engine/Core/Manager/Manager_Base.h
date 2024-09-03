@@ -56,7 +56,7 @@ template <class ReturnType, typename... Args>
 ReturnType* Manager_Base<ManagedType, Manager>::CreateOrLoad(const std::wstring& InName, Args&&... InArgs)
 {
 	std::wstring id   = ParseFile(InName);
-	uint32_t     hash = StringHash(InName.c_str());
+	uint32_t     hash = StringHash(id.c_str());
 
 	if (ReturnType* resource = FetchResource<ReturnType>(id))
 	{

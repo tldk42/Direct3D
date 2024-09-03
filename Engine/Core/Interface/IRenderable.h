@@ -15,9 +15,10 @@ enum class ELayerType : uint32_t
 class IRenderable
 {
 public:
+	/** Draw 호출 전 사전 작업 */
 	virtual void PreRender() = 0;
+	/** Render 순서 정렬 등 최종 Draw전 작업 */
 	virtual void Render() = 0;
+	/** Draw or DrawIndex 호출 */
 	virtual void PostRender() = 0;
-	
-	virtual ELayerType GetLayerType() = 0;
 };

@@ -15,7 +15,7 @@ using FbxData      = JData<FVertexInfo_Simple>;
 using FbxMeshData  = std::vector<Ptr<FbxData>>;
 using DxMatrixHash = std::unordered_map<JWText, FMatrix>;
 using PoseHash     = std::unordered_map<FbxNode*, FbxMatrix>;
-using MeshHash     = std::unordered_map<FbxNode*, CFbxMesh*>;
+using MeshHash     = std::unordered_map<FbxNode*, JMesh*>;
 
 class CFBXObj
 {
@@ -38,11 +38,11 @@ public:
 
 private:
 	void ParseNode(FbxNode* InNode, FbxNodeAttribute::EType NodeAttribute);
-	
+
 	void          PreProcess_Recursive(FbxNode* InNode);
-	void          ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const FMatrix& ParentWorldMat);
+	void          ParseNode_Recursive(FbxNode* InNode, JMesh* ParentMesh, const FMatrix& ParentWorldMat);
 	void          ParseAnimation();
-	void          ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, FbxData* InFbxData);
+	void          ParseMesh(FbxNode* InNode, FbxMesh* InMesh, JMesh* InMeshData, FbxData* InFbxData);
 	CFbxMaterial* ParseMaterialInLayer(FbxMesh* Mesh, FbxLayer* Layer, int32_t MaterialIndex);
 	bool          ExtractTextures(FbxProperty&    Property, const char* ParamName, CFbxMaterial* Material,
 						 EMaterialExportParamFlag ParamFlags);
@@ -59,7 +59,7 @@ public:
 	std::unordered_map<JWText, FMatrix> mFrameMatrix;
 
 	std::vector<Ptr<FbxData>>            mDataList;
-	std::vector<Ptr<CFbxMesh>>           mMeshList;
+	std::vector<Ptr<JMesh>>              mMeshList;
 	std::vector<FLayerInfo>              mFbxLayerList;
 	std::vector<Ptr<JData<JStaticMesh>>> mFbxMeshData;
 

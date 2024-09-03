@@ -13,7 +13,5 @@ public:
 	void Render() override;
 	void PostRender() override;
 
-	ELayerType GetLayerType() override;
-
 protected:
 };

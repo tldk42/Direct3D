@@ -38,12 +38,12 @@ public:
 
 	void AddLayerObject(IRenderable* InRenderable)
 	{
-		const uint32_t index = static_cast<uint32_t>(InRenderable->GetLayerType());
+		// const uint32_t index = static_cast<uint32_t>(InRenderable->GetLayerType());
 
-		if (mLayers.size() >= index)
-		{
-			mLayers[index]->AddLayerObject(InRenderable);
-		}
+		// if (mLayers.size() >= index)
+		// {
+		// 	mLayers[index]->AddLayerObject(InRenderable);
+		// }
 	}
 
 private:

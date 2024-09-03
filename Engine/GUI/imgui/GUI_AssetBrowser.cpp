@@ -53,12 +53,15 @@ void GUI_AssetBrowser::Update(float_t DeltaTime)
 	}
 
 	// 창 내부 크기 설정
-	ImGui::SetNextWindowContentSize(ImVec2(0.0f, mLayoutOuterPadding + mLayoutLineCount *
+	ImGui::SetNextWindowContentSize(ImVec2(0.0f,
+										   mLayoutOuterPadding + mLayoutLineCount *
 										   (mLayoutItemSize.x + mLayoutItemSpacing)));
 
 	// 창 내부에 독립적인 레이아웃(스크롤)을 가지는 UI 생성
-	if (ImGui::BeginChild("Assets", ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing()),
-						  ImGuiChildFlags_Border, ImGuiWindowFlags_NoMove))
+	if (ImGui::BeginChild("Assets",
+						  ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing()),
+						  ImGuiChildFlags_Border,
+						  ImGuiWindowFlags_NoMove))
 	{
 
 		// 창에서 남아있는 사용가능한 영역 확인
@@ -327,7 +330,8 @@ void GUI_AssetBrowser::UpdateDragDrop(bool bIsItemSelected, ImGuiID payLoadID)
 			else
 				while (mSelection.GetNextSelectedItem(&it, &id))
 					payload_items.push_back(id);
-			ImGui::SetDragDropPayload("ASSETS_BROWSER_ITEMS", payload_items.Data,
+			ImGui::SetDragDropPayload("ASSETS_BROWSER_ITEMS",
+									  payload_items.Data,
 									  (size_t)payload_items.size_in_bytes());
 		}
 
@@ -364,7 +368,8 @@ void GUI_AssetBrowser::UpdateIcon(ImVec2 pos, int bIsItemSelected, FBasicFilePre
 			draw_list->AddImage(
 								itemData->FileType == EFileType::Folder
 									? g_IconList.FolderIcon->GetSRV()
-									: g_IconList.FileIcon->GetSRV(), box_min + ImVec2(2, 2),
+									: g_IconList.FileIcon->GetSRV(),
+								box_min + ImVec2(2, 2),
 								box_max - ImVec2(2, 2));
 		}
 

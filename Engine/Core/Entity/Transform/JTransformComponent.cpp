@@ -8,19 +8,19 @@
 
 JTransformComponent::JTransformComponent()
 {
-	mShaderData = IManager.ShaderManager.CreateOrLoad(L"Shader/alphablend.hlsl");
+	// mDXObject = IManager.ShaderManager.CreateOrLoad(L"Shader/alphablend.hlsl");
 }
 
 void JTransformComponent::PreRender()
 {
-	mShaderData->PreRender();
+	mDXObject->PreRender();
 }
 
 void JTransformComponent::Render()
 {
 	PreRender();
 
-	mShaderData->Render();
+	mDXObject->Render();
 
 	auto* context = G_Context.GetImmediateDeviceContext();
 	assert(context);
@@ -71,29 +71,23 @@ void JTransformComponent::Render()
 void JTransformComponent::PostRender()
 {
 	UpdateConstantBuffer();
-	mShaderData->PostRender();
+	mDXObject->PostRender();
 }
-
-ELayerType JTransformComponent::GetLayerType()
-{
-	return ELayerType::End;
-}
-
 
 void JTransformComponent::UpdateConstantBuffer()
 {
-	if (mParentTransformComp && mParentTransformComp->mShaderData->GetCBuffer())
+	if (mParentTransformComp && mParentTransformComp->mDXObject->GetCBuffer())
 	{
-		G_Context.GetImmediateDeviceContext()->UpdateSubresource(mParentTransformComp->mShaderData->GetCBuffer(),
+		G_Context.GetImmediateDeviceContext()->UpdateSubresource(mParentTransformComp->mDXObject->GetCBuffer(),
 																 0,
 																 nullptr,
 																 &mParentTransformComp->mConstantBufferData,
 																 0,
 																 0);
 	}
-	else if (mShaderData->GetCBuffer())
+	else if (mDXObject->GetCBuffer())
 	{
-		G_Context.GetImmediateDeviceContext()->UpdateSubresource(mShaderData->GetCBuffer(),
+		G_Context.GetImmediateDeviceContext()->UpdateSubresource(mDXObject->GetCBuffer(),
 																 0,
 																 nullptr,
 																 &mConstantBufferData,
@@ -129,14 +123,18 @@ void JTransformComponent::SetMesh(CFBXObj* InFbxObj)
 	mMeshList = InFbxObj->mMeshList;
 	mDataList = InFbxObj->mDataList;
 
+	uint32_t vertexBufOffset = 0;
+	uint32_t indexBufOffset  = 0;
+
 	for (int32_t i = 0; i < mDataList.size(); ++i)
 	{
 		auto data = mDataList[i].get();
 		auto mesh = mMeshList[i].get();
 
+		// subMesh 존재
 		if (!mesh->SubMesh.empty())
 		{
-			for (int32_t subMeshIdx = 0; subMeshIdx < mesh->SubMesh.size(); ++subMeshIdx)
+			/*for (int32_t subMeshIdx = 0; subMeshIdx < mesh->SubMesh.size(); ++subMeshIdx)
 			{
 				auto subData = data->SubMesh[subMeshIdx].get();
 				auto subMesh = mesh->SubMesh[subMeshIdx].get();
@@ -144,8 +142,69 @@ void JTransformComponent::SetMesh(CFBXObj* InFbxObj)
 				if (subData->VertexArray.size() < 3)
 					continue;
 
-				// subMesh.
-			}
+				subMesh->m_dxobj.m_iNumVertex  = subData->VertexArray.size();
+				subMesh->m_dxobj.m_iVertexSize = mVertexSize;
+
+				g_pImmediateContext->UpdateSubresource(
+													   pVB,
+													   0,
+													   &ptSubMesh->m_dxobj.m_BoxVB,
+													   (uint8_t*)&pSubData->m_VertexArray.at(0),
+													   0,
+													   0);
+
+
+				/*g_pImmediateContext->CopySubresourceRegion(
+				m_dxobj.g_pVertexBuffer.Get(), 0, iBeginPos, 0, 0,
+				(void*)&pSubMesh->m_VertexArray.at(0),
+				0, &pSubMesh->m_dxobj.m_BoxVB);#1#
+
+				subMesh->m_dxobj.m_iBeginVB = vbOffset;
+				vbOffset += subMesh->m_dxobj.m_iNumVertex;
+				dstOffset = subMesh->m_dxobj.m_BoxVB.right;
+
+				subMesh->m_dxobj.m_iNumIndex = subData->IndexArray.size();
+
+				g_pImmediateContext->UpdateSubresource(pIB,
+													   0,
+													   &ptSubMesh->m_dxobj.m_BoxIB,
+													   (void*)&pSubData->m_IndexArray.at(0),
+													   0,
+													   0);
+
+				subMesh->m_dxobj.m_iBeginIB = ibOffset;
+				ibOffset += ptSubMesh->m_dxobj.m_iNumIndex;
+				dstibOffset = ptSubMesh->m_dxobj.m_BoxIB.right;
+
+				//texture
+				if (ptSubMesh->m_iDiffuseTex <= 0)
+					continue;
+				subMesh->m_dxobj.g_pTextureSRV = I_Texture.GetPtr(ptSubMesh->m_iDiffuseTex)->m_pTextureSRV;
+			}*/
+		}
+		// Mesh만 존재
+		else
+		{
+			if (data->VertexArray.size() < 3)
+				continue;
+
+			uint32_t vertexNum = data->VertexArray.size();
+			uint32_t indexNum  = data->IndexArray.size();
+
+			mDXObject->UpdateVertexData((void*)&data->VertexArray.at(0),
+										  vertexNum,
+										  sizeof(FVertexInfo_Simple),
+										  vertexBufOffset);
+			vertexBufOffset += vertexNum;
+
+
+			mDXObject->UpdateIndexData(&data->IndexArray.at(0), indexNum, indexBufOffset);
+			indexBufOffset += indexNum;
+
+			//texture
+			if (mesh->DiffuseTex <= 0)
+				continue;
+			// mesh->m_dxobj.g_pTextureSRV = I_Texture.GetPtr(mesh->DiffuseTex)->m_pTextureSRV;
 		}
 	}
 }

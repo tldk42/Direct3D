@@ -22,10 +22,5 @@ void GUI_Base::Render()
 
 void GUI_Base::PostRender() {}
 
-ELayerType GUI_Base::GetLayerType()
-{
-	return ELayerType::GUI;
-}
-
 void GUI_Base::Release()
 {}

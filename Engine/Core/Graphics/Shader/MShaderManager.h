@@ -1,17 +1,14 @@
 ﻿#pragma once
-#include "JDXObject.h"
+#include "JShader.h"
 #include "Core/Manager/Manager_Base.h"
 
-#define Manager_Shader MShaderManager::Get()
-
-
-class MShaderManager : public Manager_Base<JDXObject, MShaderManager>
+class MShaderManager : public Manager_Base<JShader, MShaderManager>
 {
 private:
 	friend class TSingleton<MShaderManager>;
 	friend class MManagerInterface;
 
-	MShaderManager()  = default;
+	MShaderManager();
 	~MShaderManager() = default;
 
 public:

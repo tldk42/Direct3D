@@ -11,7 +11,7 @@ JBaseMeshComponent::~JBaseMeshComponent() {}
 void JBaseMeshComponent::PreRender()
 {
 	G_Context.GetImmediateDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	mShaderData->PreRender();
+	mDXObject->PreRender();
 }
 
 void JBaseMeshComponent::Render()
@@ -42,12 +42,9 @@ void JBaseMeshComponent::Render()
 }
 
 void       JBaseMeshComponent::PostRender() {}
-ELayerType JBaseMeshComponent::GetLayerType()
-{
-	return ELayerType::End;
-}
 
-void JBaseMeshComponent::SetBoneMatrices(CFbxMesh* InMeshData, CFBXObj* AnimMesh)
+
+void JBaseMeshComponent::SetBoneMatrices(JMesh* InMeshData, CFBXObj* AnimMesh)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedFaceDest;
 

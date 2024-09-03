@@ -4,7 +4,7 @@
 #include "Core/Interface/IRenderable.h"
 #include "Core/Utils/Math/TMatrix.h"
 
-struct CFbxMesh;
+struct JMesh;
 class CFBXObj;
 /**
  * 위치를 가지는 컴포넌트
@@ -19,7 +19,7 @@ public:
 	void         PreRender() override;
 	void         Render() override;
 	void         PostRender() override;
-	ELayerType   GetLayerType() override;
+	
 	virtual void SetMesh(CFBXObj* InFbxObj);
 
 public:
@@ -29,7 +29,7 @@ private:
 
 protected:
 	JTransformComponent* mParentTransformComp;
-	JDXObject*           mShaderData;
+	JDXObject*           mDXObject;
 
 	CBuffer::Space mConstantBufferData;
 
@@ -41,7 +41,7 @@ protected:
 	FMatrix mWorldScaleMat;
 
 	std::vector<Ptr<FbxData>>  mDataList;
-	std::vector<Ptr<CFbxMesh>> mMeshList;
+	std::vector<Ptr<JMesh>> mMeshList;
 
 	ComPtr<ID3D11Buffer>             mBoneBuffer;
 	ComPtr<ID3D11ShaderResourceView> mBoneBufferSRV;

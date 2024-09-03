@@ -2,7 +2,7 @@
 #include "Core/Entity/Transform/JTransformComponent.h"
 
 class CFBXObj;
-struct CFbxMesh;
+struct JMesh;
 
 class JBaseMeshComponent : public JTransformComponent, public IRenderable
 {
@@ -16,12 +16,11 @@ public:
 	void Render() override;
 	void PostRender() override;
 
-	ELayerType GetLayerType() override;
 
 protected:
-	void SetBoneMatrices(CFbxMesh* InMeshData, CFBXObj* AnimMesh);
+	void SetBoneMatrices(JMesh* InMeshData, CFBXObj* AnimMesh);
 protected:
 
 	std::vector<Ptr<FbxData>>         mFbxData;
-	std::vector<Ptr<struct CFbxMesh>> mMeshData;
+	std::vector<Ptr<struct JMesh>> mMeshData;
 };

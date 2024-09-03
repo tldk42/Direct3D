@@ -33,7 +33,3 @@ void XStaticMesh::PreRender() {}
 void XStaticMesh::Render() {}
 void XStaticMesh::PostRender() {}
 
-ELayerType XStaticMesh::GetLayerType()
-{
-	return ELayerType::End;
-}

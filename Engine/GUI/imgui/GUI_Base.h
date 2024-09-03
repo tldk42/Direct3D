@@ -18,9 +18,7 @@ public:
 	void PreRender() override;
 	void Render() override;
 	void PostRender() override;
-
-	ELayerType GetLayerType() override;
-
+	
 	FORCEINLINE bool GetVisibility() const { return bVisible; }
 	FORCEINLINE void SetVisibility(bool bActiveVisible) { bVisible = bActiveVisible; }
 

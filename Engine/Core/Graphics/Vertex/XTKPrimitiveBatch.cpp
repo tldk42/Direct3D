@@ -67,11 +67,6 @@ void XTKPrimitiveBatch::PostRender()
 	mBatch->End();
 }
 
-ELayerType XTKPrimitiveBatch::GetLayerType()
-{
-	return ELayerType::End;
-}
-
 void XTKPrimitiveBatch::Draw(BoundingSphere& InSphere, FXMVECTOR InColor) const
 {
 	const XMVECTOR origin = XMLoadFloat3(&InSphere.Center);

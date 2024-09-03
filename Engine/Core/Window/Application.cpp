@@ -77,9 +77,9 @@ void Application::Initialize()
 	g_FpsText.SetColor(FLinearColor::Orange);
 	g_FpsText.SetScreenPosition({25, 25});
 
-	g_testObj.Load();
-	g_sampleObj = MakeUPtr<JTransformComponent>();
-	g_sampleObj->SetMesh(&g_testObj);
+	// g_testObj.Load();
+	// g_sampleObj = MakeUPtr<JTransformComponent>();
+	// g_sampleObj->SetMesh(&g_testObj);
 }
 
 void Application::Update(float DeltaTime)

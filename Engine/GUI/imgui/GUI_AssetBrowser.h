@@ -82,8 +82,8 @@ struct AssetBrowserIconList
 	}
 
 public:
-	XTexture2D* FolderIcon;
-	XTexture2D* FileIcon;
+	JTexture2D* FolderIcon;
+	JTexture2D* FileIcon;
 };
 
 struct FBasicFilePreview

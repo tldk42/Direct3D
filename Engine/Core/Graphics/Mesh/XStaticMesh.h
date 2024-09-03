@@ -19,7 +19,6 @@ public:
 	void       PreRender() override;
 	void       Render() override;
 	void       PostRender() override;
-	ELayerType GetLayerType() override;
 #pragma endregion
 
 protected:

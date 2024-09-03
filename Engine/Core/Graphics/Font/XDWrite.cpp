@@ -56,11 +56,6 @@ void XDWrite::PostRender()
 	CheckResult(mRenderTarget->EndDraw());
 }
 
-ELayerType XDWrite::GetLayerType()
-{
-	return ELayerType::UI;
-}
-
 void XDWrite::SetRenderTarget(ID2D1RenderTarget* InRenderTarget)
 {
 	mRenderTarget = InRenderTarget;

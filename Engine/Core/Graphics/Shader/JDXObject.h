@@ -3,61 +3,28 @@
 #include "Core/Interface/IRenderable.h"
 
 
-[[nodiscard]] inline HRESULT LoadVertexShader(ID3D11Device*        Device, const JWText& VertexFileName,
-											  ID3D11VertexShader** VertexShader,
-											  ID3DBlob**           OutBlob = nullptr, LPCSTR EntryPoint = nullptr);
-[[nodiscard]] inline HRESULT LoadPixelShader(ID3D11Device*       Device, const JWText& PixelFileName,
-											 ID3D11PixelShader** pixelShader,
-											 ID3DBlob**          OutBlob = nullptr, LPCSTR EntryPoint = nullptr);
-
-[[nodiscard]] inline HRESULT LoadGeometryShader(ID3D11Device*          Device, const JWText&      ShaderFile,
-												ID3D11GeometryShader** geometryShader, ID3DBlob** OutBlob = nullptr,
-												LPCSTR                 FuncName                           = nullptr);
-[[nodiscard]] inline HRESULT LoadHullShaderFile(ID3D11Device*      Device, const JWText&,
-												ID3D11HullShader** hullShader, ID3DBlob** OutBlob = nullptr,
-												LPCSTR             FuncName                       = nullptr);
-[[nodiscard]] inline HRESULT LoadDomainShaderFile(ID3D11Device*        Device, const JWText&    ShaderFile,
-												  ID3D11DomainShader** domainShader, ID3DBlob** OutBlob = nullptr,
-												  LPCSTR               FuncName                         = nullptr);
-[[nodiscard]] inline HRESULT LoadComputeShaderFile(ID3D11Device*         Device, const JWText&     ShaderFile,
-												   ID3D11ComputeShader** computeShader, ID3DBlob** OutBlob = nullptr,
-												   LPCSTR                FuncName                          = nullptr);
-
-
-[[nodiscard]] inline HRESULT CompileShader(const WCHAR* FileName, LPCSTR        EntryPoint,
-										   LPCSTR       ShaderModel, ID3DBlob** OutBlob);
-
-inline void CreateVertexBuffer(void*                InVertices, uint32_t InVertexNum, uint32_t InSize,
-							   _Out_ ID3D11Buffer** OutVertexBuffer);
-
-inline void CreateIndexBuffer(void* InIndices, uint32_t InIndexNum, uint32_t InSize, _Out_ ID3D11Buffer** OutIndexBuffer);
-
-inline void CreateConstantBuffer(void*                InData, uint32_t InIndexNum, uint32_t InSize,
-								 _Out_ ID3D11Buffer** OutConstantBuffer);
-
+/**
+ * 화면에 뿌려지는 모든 데이터는 이 오브젝트를 컴포넌트로 가지거나 상속받는다
+ */
 class JDXObject : public IRenderable
 {
 public:
-	explicit JDXObject(const JWText& InShaderFile, LPCSTR VSEntryPoint = "VS", LPCSTR PSEntryPoint = "PS");
+	explicit JDXObject(const JWText& InShaderFile);
 	~JDXObject();
 
 public:
 	void Release();
 
 #pragma region Render Interface
-	void       PreRender() override;
-	void       Render() override;
-	void       PostRender() override;
-	ELayerType GetLayerType() override;
+	void PreRender() override;
+	void Render() override;
+	void PostRender() override;
 #pragma endregion
 
 public:
-	void SetVertexShader(JWTextView InFile, LPCSTR FuncName);
-	void SetPixelShader(JWTextView InFile, LPCSTR FuncName);
-	void SetGeometryShader(JWTextView InFile, LPCSTR FuncName);
-	void SetHullShader(JWTextView InFile, LPCSTR FuncName);
-	void SetDomainShader(JWTextView InFile, LPCSTR FuncName);
-	void SetComputeShader(JWTextView InFile, LPCSTR FuncName);
+	void UpdateVertexData(void*          InSrcData, const uint32_t InVertexNum, const uint32_t InVertexSize,
+						  const uint32_t InVertexBegin);
+	void UpdateIndexData(void* InSrcData, const uint32_t InIndexNum, const uint32_t InIndexBegin);
 
 public:
 	[[nodiscard]] FORCEINLINE ID3D11Buffer*            GetVertexBuffer() const { return mVertexBuffer.Get(); }
@@ -66,39 +33,20 @@ public:
 	[[nodiscard]] FORCEINLINE D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveType() const { return mPrimitiveType; }
 
 private:
-	void HandleLayout();
-
-private:
-	JWText mShaderFile;
-
-#pragma region Shader
+	JWText            mShaderFile;
+	class JShader*    mShader;
+	class JTexture2D* mTexture;
 
 	ComPtr<ID3D11Buffer> mVertexBuffer;
 	ComPtr<ID3D11Buffer> mIndexBuffer;
 	ComPtr<ID3D11Buffer> mConstantBuffer;
 
-	ComPtr<ID3D11VertexShader>   mVertexShader;
-	ComPtr<ID3D11PixelShader>    mPixelShader;
-	ComPtr<ID3D11GeometryShader> mGeometryShader;
-	ComPtr<ID3D11HullShader>     mHullShader;
-	ComPtr<ID3D11DomainShader>   mDomainShader;
-	ComPtr<ID3D11ComputeShader>  mComputeShader;
-
-	ComPtr<ID3DBlob> mVertexShaderBuf;
-	ComPtr<ID3DBlob> mPixelShaderBuf;
-	ComPtr<ID3DBlob> mGeometryShaderBuf;
-	ComPtr<ID3DBlob> mHullShaderBuf;
-	ComPtr<ID3DBlob> mDomainShaderBuf;
-	ComPtr<ID3DBlob> mComputeShaderBuf;
-
-	ComPtr<ID3D11InputLayout> mInputLayout;
-
-	class XTexture2D* mTexture;
+	uint32_t mVertexNum;
+	uint32_t mIndexNum;
+	uint32_t mVertexSize;
+	uint32_t mIndexSize;
+	uint32_t mVertexBegin;
+	uint32_t mIndexBegin;
 
 	D3D11_PRIMITIVE_TOPOLOGY mPrimitiveType;
-	uint32_t                 mVertexNum;
-	uint32_t                 mIndexNum;
-	uint32_t                 mVertexSize;
-	uint32_t                 mIndexSize;
-#pragma endregion
 };

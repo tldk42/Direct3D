@@ -197,7 +197,7 @@ void CFBXObj::ParseNode(FbxNode* InNode, FbxNodeAttribute::EType NodeAttribute)
 
 
 	Ptr<FbxData>  data = MakePtr<FbxData>();
-	Ptr<CFbxMesh> mesh = MakePtr<CFbxMesh>();
+	Ptr<JMesh> mesh = MakePtr<JMesh>();
 
 	switch (NodeAttribute)
 	{
@@ -225,7 +225,7 @@ void CFBXObj::PreProcess_Recursive(FbxNode* InNode)
 	}
 }
 
-void CFBXObj::ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const FMatrix& ParentWorldMat)
+void CFBXObj::ParseNode_Recursive(FbxNode* InNode, JMesh* ParentMesh, const FMatrix& ParentWorldMat)
 {
 	if (!InNode)
 		return;
@@ -235,7 +235,7 @@ void CFBXObj::ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const F
 		return;
 
 	Ptr<FbxData>  data = MakePtr<FbxData>();
-	Ptr<CFbxMesh> mesh = MakePtr<CFbxMesh>();
+	Ptr<JMesh> mesh = MakePtr<JMesh>();
 
 	FMatrix nodeWorldMat = ParseTransform(InNode, ParentWorldMat);
 	// Fbx Transform -> FTransform(현재 엔진의 행렬로 변환) -> DirectX Axis 변환
@@ -272,7 +272,7 @@ void CFBXObj::ParseNode_Recursive(FbxNode* InNode, CFbxMesh* ParentMesh, const F
 
 void CFBXObj::ParseAnimation() {}
 
-void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, FbxData* InFbxData)
+void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, JMesh* InMeshData, FbxData* InFbxData)
 {
 	if (!InMesh)
 		return;
@@ -350,7 +350,7 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, CFbxMesh* InMeshData, 
 					materials.push_back(fbxMat);
 
 					auto subData = MakePtr<FbxData>();
-					auto subMesh = MakePtr<CFbxMesh>();
+					auto subMesh = MakePtr<JMesh>();
 
 					InMeshData->SubMesh.push_back(subMesh);
 					InFbxData->SubMesh.push_back(subData);

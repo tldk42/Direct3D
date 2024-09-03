@@ -11,13 +11,13 @@ enum class EMeshType : uint8_t
 };
 
 
-struct CFbxMesh
+struct JMesh
 {
 	JText     Name;
 	int32_t   Index;
 	EMeshType ClassType;
 
-	CFbxMesh* ParentMesh;
+	JMesh* ParentMesh;
 
 	int32_t MaterialRefNum;
 	int32_t FaceNum;
@@ -30,17 +30,17 @@ struct CFbxMesh
 	FMatrix WorldRotateMat;
 	FMatrix WorldScaleMat;
 
-	std::vector<FMatrix>       MatrixList;
-	std::vector<Ptr<CFbxMesh>> SubMesh;
-	std::vector<CFbxMesh*>     ChildMesh;
+	std::vector<FMatrix>    MatrixList;
+	std::vector<Ptr<JMesh>> SubMesh;
+	std::vector<JMesh*>     ChildMesh;
 
 	int32_t DiffuseTex;
 
 	std::vector<JText>                 InfluenceNames;
 	std::unordered_map<JText, FMatrix> BindPoseMap;
 
-	CFbxMesh()  = default;
-	~CFbxMesh() = default;
+	JMesh()  = default;
+	~JMesh() = default;
 
 	void AddInfluence(const JText& InText, const FMatrix& InMatrix);
 };

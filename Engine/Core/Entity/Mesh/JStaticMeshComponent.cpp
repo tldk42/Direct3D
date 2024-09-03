@@ -12,9 +12,3 @@ void JStaticMeshComponent::Render()
 {}
 
 void JStaticMeshComponent::PostRender() {}
-
-
-ELayerType JStaticMeshComponent::GetLayerType()
-{
-	return ELayerType::End;
-}

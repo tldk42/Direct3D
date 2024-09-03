@@ -22,10 +22,10 @@ void Renderer::Render()
 
 void Renderer::AddLayerObject(IRenderable* InRenderableObj)
 {
-	auto it = mLayers.find(static_cast<uint32_t>(InRenderableObj->GetLayerType()));
-
-	if (it != mLayers.end())
-	{
-		it->second->AddLayerObject(InRenderableObj);
-	}
+	// auto it = mLayers.find(static_cast<uint32_t>(InRenderableObj->GetLayerType()));
+	//
+	// if (it != mLayers.end())
+	// {
+	// 	it->second->AddLayerObject(InRenderableObj);
+	// }
 }

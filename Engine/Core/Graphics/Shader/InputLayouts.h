@@ -1,13 +1,12 @@
 #pragma once
 #include <d3d11.h>
 
-const uint32_t HASH_INPUT_LAYOUT_SKELETAL_MESH = StringHash(L"Shader/Character.hlsl");
-const uint32_t HASH_INPUT_LAYOUT_STATIC_MESH   = StringHash(L"Shader/alphablend.hlsl");
-const uint32_t HASH_INPUT_LAYOUT_SIMPLE_MESH   = StringHash(L"Shader/SimpleShape.hlsl");
+const uint32_t HASH_SHADER_SKELETAL_MESH = StringHash(L"Shader/Character.hlsl");
+const uint32_t HASH_SHADER_STATIC_MESH   = StringHash(L"Shader/alphablend.hlsl");
+const uint32_t HASH_SHADER_SIMPLE_MESH   = StringHash(L"Shader/SimpleShape.hlsl");
 
 namespace InputLayout
 {
-
 	constexpr D3D11_INPUT_ELEMENT_DESC Position =
 	{
 		"POSITION",                  // 셰이더 입력 서명에서 이 요소와 연결된 의미체계 
@@ -110,6 +109,16 @@ namespace InputLayout
 		Position,
 		Normal,
 		Texture
+	};
+
+	inline std::unordered_map<uint32_t, const D3D11_INPUT_ELEMENT_DESC*> HASH_INPUT_LAYOUT_MAP_DESC =
+	{
+		{HASH_SHADER_STATIC_MESH, ALPHABLEND_LAYOUT}
+	};
+
+	inline std::unordered_map<uint32_t, uint32_t> HASH_INPUT_LAYOUT_MAP_NUMELEMENT =
+	{
+		{HASH_SHADER_STATIC_MESH, 4}
 	};
 
 }
