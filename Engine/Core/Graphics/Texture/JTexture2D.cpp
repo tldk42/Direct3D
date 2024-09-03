@@ -17,7 +17,8 @@ JTexture2D::JTexture2D(JWTextView InName)
 
 void JTexture2D::PreRender()
 {
-	G_Context.GetImmediateDeviceContext()->PSSetShaderResources(mSlot, 1, mShaderResourceView.GetAddressOf());
+	if (mShaderResourceView.Get())
+		G_Context.GetImmediateDeviceContext()->PSSetShaderResources(mSlot, 1, mShaderResourceView.GetAddressOf());
 }
 
 void JTexture2D::Render() {}

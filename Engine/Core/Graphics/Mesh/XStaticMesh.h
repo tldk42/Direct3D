@@ -22,7 +22,7 @@ public:
 #pragma endregion
 
 protected:
-	std::vector<FVertexInfo_Simple> mVertices;
+	std::vector<Vertex::FVertexInfo_Base> mVertices;
 
 	ComPtr<ID3D11Buffer> mVertexBuffer;
 };

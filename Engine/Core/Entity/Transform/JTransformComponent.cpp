@@ -193,7 +193,7 @@ void JTransformComponent::SetMesh(CFBXObj* InFbxObj)
 
 			mDXObject->UpdateVertexData((void*)&data->VertexArray.at(0),
 										  vertexNum,
-										  sizeof(FVertexInfo_Simple),
+										  sizeof(Vertex::FVertexInfo_Base),
 										  vertexBufOffset);
 			vertexBufOffset += vertexNum;
 

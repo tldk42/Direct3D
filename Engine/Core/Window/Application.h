@@ -45,7 +45,7 @@ private:
 	int32_t mFramesPerSec;
 	int32_t mFrameCounter;
 
-	UPtr<class JTransformComponent> g_sampleObj;
+	UPtr<class JDXObject> g_sampleObj;
 
 
 	// #pragma region Singleton Boilerplate

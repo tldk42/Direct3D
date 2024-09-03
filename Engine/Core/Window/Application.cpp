@@ -4,6 +4,7 @@
 #include "Core/Entity/Transform/JTransformComponent.h"
 #include "Core/Graphics/GraphicDevice.h"
 #include "Core/Graphics/Font/XDWrite.h"
+#include "Core/Graphics/Shader/JDXObject.h"
 #include "Core/Graphics/Viewport/MViewportManager.h"
 #include "Core/Interface/MManagerInterface.h"
 #include "GUI/imgui/GUI_Viewport.h"
@@ -14,7 +15,7 @@
 #include "Core/Window/Window.h"
 
 XDWrite g_FpsText(nullptr);
-CFBXObj g_testObj("Game/Model/SM_Barrel.fbx");
+CFBXObj g_testObj("Game/Model/axis.fbx");
 
 
 Application::Application()
@@ -77,8 +78,8 @@ void Application::Initialize()
 	g_FpsText.SetColor(FLinearColor::Orange);
 	g_FpsText.SetScreenPosition({25, 25});
 
-	// g_testObj.Load();
-	// g_sampleObj = MakeUPtr<JTransformComponent>();
+	g_testObj.Load();
+	g_sampleObj = MakeUPtr<JDXObject>(&g_testObj);
 	// g_sampleObj->SetMesh(&g_testObj);
 }
 
@@ -101,6 +102,9 @@ void Application::Render()
 	g_FpsText.PreRender();
 	g_FpsText.Render();
 	g_FpsText.PostRender();
+
+	g_sampleObj->PreRender();
+	g_sampleObj->PostRender();
 
 	G_Context.Present();
 }

@@ -8,9 +8,9 @@ JCamera::JCamera() noexcept
 	: mName(std::format(L"JCam_{}", s_CameraNum++)),
 	  mView{},
 	  mProj{},
-	  mDefaultEye(0, 0, 0),
+	  mDefaultEye(0, 0, -10.f),
 	  mDefaultLookAt(0, 0, 0),
-	  mEye(0, 0, 0),
+	  mEye(mDefaultEye),
 	  mLookAt(0, 0, 0),
 	  mYaw(0.f),
 	  mPitch(0.f),
@@ -22,7 +22,7 @@ JCamera::JCamera() noexcept
 	  mTranslationValue(5.f),
 	  mInputKeyboard()
 {
-	JCamera::SetViewParams(g_XMZero, M_ForwardVector);
+	JCamera::SetViewParams(mDefaultEye, mDefaultLookAt);
 	const float aspect = static_cast<float>(MainApp.GetWindowWidth()) / static_cast<float>(MainApp.GetWindowHeight());
 	JCamera::SetProjParams(M_PI / 4, aspect, 1.f, 1000.f);
 }

@@ -3,7 +3,9 @@
 #include "Core/Graphics/ShaderStructs.h"
 #include "Core/Interface/IRenderable.h"
 #include "Core/Utils/Math/TMatrix.h"
+#include "Core/Utils/ObjectLoader/FbxObject.h"
 
+class JDXObject;
 struct JMesh;
 class CFBXObj;
 /**

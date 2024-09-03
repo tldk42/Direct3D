@@ -5,7 +5,7 @@ void XStaticMesh::Initialize()
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	{
-		bufferDesc.ByteWidth      = mVertices.size() * sizeof(FVertexInfo_Simple); // 버퍼크기
+		bufferDesc.ByteWidth      = mVertices.size() * sizeof(Vertex::FVertexInfo_Base); // 버퍼크기
 		bufferDesc.Usage          = D3D11_USAGE_DEFAULT;	// 버퍼의 읽기/쓰기 방법 지정
 		bufferDesc.BindFlags      = D3D11_BIND_VERTEX_BUFFER; // 파이프라인에 바인딩될 방법
 		bufferDesc.CPUAccessFlags = 0; // 생성될 버퍼에 CPU가 접근하는 유형 (DX 성능에 매우 중요)
@@ -32,4 +32,3 @@ void XStaticMesh::Release() {}
 void XStaticMesh::PreRender() {}
 void XStaticMesh::Render() {}
 void XStaticMesh::PostRender() {}
-

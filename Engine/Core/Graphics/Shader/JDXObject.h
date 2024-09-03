@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Core/Graphics/graphics_common_include.h"
+#include "Core/Graphics/ShaderStructs.h"
 #include "Core/Interface/IRenderable.h"
 
 
@@ -9,7 +10,10 @@
 class JDXObject : public IRenderable
 {
 public:
+	explicit JDXObject();
+	explicit JDXObject(class CFBXObj* InFbxObj);
 	explicit JDXObject(const JWText& InShaderFile);
+	explicit JDXObject(CFBXObj* InFbxObj, const JWText& InShaderFile);
 	~JDXObject();
 
 public:
@@ -29,17 +33,30 @@ public:
 public:
 	[[nodiscard]] FORCEINLINE ID3D11Buffer*            GetVertexBuffer() const { return mVertexBuffer.Get(); }
 	[[nodiscard]] FORCEINLINE ID3D11Buffer*            GetIndexBuffer() const { return mIndexBuffer.Get(); }
-	[[nodiscard]] FORCEINLINE ID3D11Buffer*            GetCBuffer() const { return mConstantBuffer.Get(); }
+	[[nodiscard]] FORCEINLINE ID3D11Buffer*            GetCBuffer() const { return mConstantBuffer_Space.Get(); }
 	[[nodiscard]] FORCEINLINE D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveType() const { return mPrimitiveType; }
+
+	void SetShaderFile(JWTextView InFileName);
+	void SetShaderFile(const JWText& InFileName);
+
+private:
+	void CreateBuffers();
 
 private:
 	JWText            mShaderFile;
 	class JShader*    mShader;
 	class JTexture2D* mTexture;
 
-	ComPtr<ID3D11Buffer> mVertexBuffer;
-	ComPtr<ID3D11Buffer> mIndexBuffer;
-	ComPtr<ID3D11Buffer> mConstantBuffer;
+
+	// -------------------------------- Buffers --------------------------------------
+	ComPtr<ID3D11Buffer> mVertexBuffer;			// Vertex 
+	ComPtr<ID3D11Buffer> mIndexBuffer;			// Index
+	ComPtr<ID3D11Buffer> mConstantBuffer_Space; // World, View, Projection
+	ComPtr<ID3D11Buffer> mConstantBuffer_Light; // Light Direction
+
+	// ----------------------------- Model Primitive Data -----------------------------
+	std::vector<Ptr<JData<Vertex::FVertexInfo_Base>>> mPrimitiveModelData;
+	std::vector<Ptr<class JMesh>>                     mPrimitiveMeshData;
 
 	uint32_t mVertexNum;
 	uint32_t mIndexNum;
@@ -48,5 +65,5 @@ private:
 	uint32_t mVertexBegin;
 	uint32_t mIndexBegin;
 
-	D3D11_PRIMITIVE_TOPOLOGY mPrimitiveType;
+	D3D11_PRIMITIVE_TOPOLOGY mPrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };

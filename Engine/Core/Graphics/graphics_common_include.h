@@ -20,4 +20,3 @@ using Matrix = XMMATRIX;
 
 
 CLASS_PTR(CWorldBuffer)
-CLASS_PTR(JDXObject)

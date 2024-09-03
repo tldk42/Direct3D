@@ -109,6 +109,21 @@ bool CFBXObj::Load(const char* InFilePath)
 	return Load();
 }
 
+void CFBXObj::Load2()
+{
+	Initialize();
+
+	FbxNode* root = mFbxScene->GetRootNode();
+	assert(root, "empty scene(node x)");
+
+	PreProcess2(root);
+
+	for (int32_t i = 0; i < mMeshList.size(); ++i)
+	{
+		ParseMesh(i);
+	}
+}
+
 bool CFBXObj::Convert()
 {
 	for (int32_t i = 0; i < mDataList.size(); ++i)
@@ -195,19 +210,36 @@ void CFBXObj::ParseNode(FbxNode* InNode, FbxNodeAttribute::EType NodeAttribute)
 	if (!attribute || attribute->GetAttributeType() != NodeAttribute)
 		return;
 
-
-	Ptr<FbxData>  data = MakePtr<FbxData>();
-	Ptr<JMesh> mesh = MakePtr<JMesh>();
-
 	switch (NodeAttribute)
 	{
 	case FbxNodeAttribute::eSkeleton:
 		break;
 	case FbxNodeAttribute::eMesh:
+
 		break;
 	default:
 		break;
 	}
+}
+
+void CFBXObj::PreProcess2(FbxNode* InNode)
+{
+	if (InNode)
+		return;
+	FbxMesh* mesh = InNode->GetMesh();
+
+	if (!mesh)
+		return;
+
+	mFbxMeshList.push_back(mesh);
+
+	int32_t childNum = InNode->GetChildCount();
+
+	for (int32_t i = 0; i < childNum; ++i)
+	{
+		PreProcess2(InNode->GetChild(i));
+	}
+
 }
 
 void CFBXObj::PreProcess_Recursive(FbxNode* InNode)
@@ -234,8 +266,8 @@ void CFBXObj::ParseNode_Recursive(FbxNode* InNode, JMesh* ParentMesh, const FMat
 	if (InNode->GetCamera() || InNode->GetLight())
 		return;
 
-	Ptr<FbxData>  data = MakePtr<FbxData>();
-	Ptr<JMesh> mesh = MakePtr<JMesh>();
+	Ptr<FbxData> data = MakePtr<FbxData>();
+	Ptr<JMesh>   mesh = MakePtr<JMesh>();
 
 	FMatrix nodeWorldMat = ParseTransform(InNode, ParentWorldMat);
 	// Fbx Transform -> FTransform(현재 엔진의 행렬로 변환) -> DirectX Axis 변환
@@ -262,7 +294,7 @@ void CFBXObj::ParseNode_Recursive(FbxNode* InNode, JMesh* ParentMesh, const FMat
 	{
 		mesh->ClassType = EMeshType::BONE;
 	}
-	
+
 	for (int32_t i = 0; i < InNode->GetChildCount(); ++i)
 	{
 		ParseNode_Recursive(InNode->GetChild(i), mesh.get(), nodeWorldMat);
@@ -449,7 +481,7 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, JMesh* InMeshData, Fbx
 				InMesh->GetTextureUVIndex(polygonIndex, triangleIndex + 1)
 			};
 
-			FTri<FVertexInfo_Simple> tri;
+			FTri<Vertex::FVertexInfo_Base> tri;
 			tri.SubIndex = materialIndex;
 
 
@@ -497,7 +529,7 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, JMesh* InMeshData, Fbx
 										  );
 
 				// 저장될 vertexInfo
-				FVertexInfo_Simple vertex;
+				Vertex::FVertexInfo_Base vertex;
 				{
 					vertex.Position.x = static_cast<float>(finalPosition.mData[0]);
 					vertex.Position.y = static_cast<float>(finalPosition.mData[2]);
@@ -531,6 +563,43 @@ void CFBXObj::ParseMesh(FbxNode* InNode, FbxMesh* InMesh, JMesh* InMeshData, Fbx
 
 		curPolyIndex += polygonSize;
 	}
+}
+
+void CFBXObj::ParseMesh(int32_t InIndex)
+{
+	FbxMesh*                              mesh = mFbxMeshList[InIndex];
+	std::vector<Vertex::FVertexInfo_Base> vertices;
+
+	int32_t     polygonNum      = mesh->GetPolygonCount();
+	FbxVector4* vertexPositions = mesh->GetControlPoints();
+
+	for (int32_t polygonIndex = 0; polygonIndex < polygonNum; ++polygonIndex)
+	{
+		int32_t polygonSize = mesh->GetPolygonSize(polygonIndex);
+		int32_t faceNum     = polygonSize - 2;
+
+		for (int32_t faceIndex = 0; faceIndex < faceNum; ++faceIndex)
+		{
+			int32_t index[3] =
+			{
+				mesh->GetPolygonVertex(polygonIndex, 0),
+				mesh->GetPolygonVertex(polygonIndex, faceIndex + 2),
+				mesh->GetPolygonVertex(polygonIndex, faceIndex + 1)
+			};
+
+			for (int32_t vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
+			{
+				Vertex::FVertexInfo_Base vertex;
+
+				vertex.Position.x = static_cast<float>(vertexPositions->mData[0]);
+				vertex.Position.y = static_cast<float>(vertexPositions->mData[2]);
+				vertex.Position.z = static_cast<float>(vertexPositions->mData[1]);
+				vertices.emplace_back(vertex);
+			}
+		}
+	}
+
+	mVertexInfos.push_back(vertices);
 }
 
 CFbxMaterial* CFBXObj::ParseMaterialInLayer(FbxMesh* Mesh, FbxLayer* Layer, int32_t MaterialIndex)

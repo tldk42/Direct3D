@@ -290,7 +290,7 @@ namespace Utils::DX
 			memcpy(mappedResource.pData, InData, InSize);
 
 			// 맵핑 해제
-			InContext->Unmap(InBuffer, 0);
+			InDeviceContext->Unmap(InBuffer, 0);
 		}
 	}
 }

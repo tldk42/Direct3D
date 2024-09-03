@@ -26,13 +26,24 @@ namespace CBuffer
 	};
 }
 
-struct FVertexInfo_Simple
+namespace Vertex
 {
-	FVector  Position;
-	FVector  Normal;
-	FVector2 UV;
-	FVector4 Color;
-};
+	struct FVertexInfo_2D
+	{
+		FVector  Position;
+		FVector2 UV;
+		FVector4 Color;
+	};
+
+	struct FVertexInfo_Base
+	{
+		FVector  Position;
+		FVector  Normal;
+		FVector2 UV;
+		FVector4 Color;
+	};
+}
+
 
 class JActorS
 {
@@ -78,6 +89,10 @@ struct IsTriangleSame
 	}
 };
 
+/**
+ * 
+ * @tparam T 정점 정보
+ */
 template <typename T>
 struct JData
 {
@@ -114,5 +129,3 @@ struct JData
 		return faceNum;
 	}
 };
-
-typedef JData<FVertexInfo_Simple> FbxData;

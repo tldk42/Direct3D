@@ -48,5 +48,6 @@ PixelShaderInput VS(VertexShaderInput Input)
 
 float4 PS(PixelShaderInput Input) : SV_TARGET
 {
+	return float4(1.0f, 0.8f, 0.1f, 1.0f);
 	return shaderTexture.Sample(SampleType, Input.Tex);
 }

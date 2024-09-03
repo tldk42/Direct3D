@@ -21,8 +21,10 @@ void GraphicDevice::Initialize()
 {
 	if (!XMVerifyCPUSupport())
 	{
-		MessageBox(nullptr, TEXT("This application requires the processor support SSE2 instructions."),
-				   TEXT("CPU not Support"), MB_OK | MB_ICONEXCLAMATION);
+		MessageBox(nullptr,
+				   TEXT("This application requires the processor support SSE2 instructions."),
+				   TEXT("CPU not Support"),
+				   MB_OK | MB_ICONEXCLAMATION);
 		assert(-1);
 	}
 
@@ -55,7 +57,8 @@ void GraphicDevice::Present()
 	// 후면 버퍼 렌더
 	CheckResult(
 				mSwapChain->Present(
-									Window::GetWindow()->IsVsyncEnabled(), 0
+									Window::GetWindow()->IsVsyncEnabled(),
+									0
 								   ));
 }
 
@@ -95,7 +98,7 @@ void GraphicDevice::CreateDevice()
 	D3D_FEATURE_LEVEL outFeatureLevel;
 
 	UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
+#if defined(DEBUG) | defined(_DEBUG)
 	flags |= D3D11_CREATE_DEVICE_DEBUG; // 디버그 활성화
 #endif
 
@@ -172,7 +175,7 @@ void GraphicDevice::CreateSwapChain()
 		mSwapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_DISCARD; // Swap이 일어난 이후 버퍼를 Discard
 		mSwapChainDesc.Scaling            = DXGI_SCALING_NONE; // Scaling 없음
 		mSwapChainDesc.Stereo             = FALSE; // 스테레오 사용하지 않음
-		mSwapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; 
+		mSwapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 	}
 
 	CheckResult(
@@ -339,7 +342,8 @@ void GraphicDevice::ResizeSwapChain(uint32_t width, uint32_t height)
 	CheckResult(
 				mSwapChain->ResizeBuffers(
 										  mSwapChainDesc.BufferCount,
-										  width, height,
+										  width,
+										  height,
 										  mSwapChainDesc.Format,
 										  mSwapChainDesc.Flags)
 			   );
